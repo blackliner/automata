@@ -3,8 +3,7 @@
 #include "hash.h"
 #include <vector>
 
-enum class MetaInfo : std::uint8_t
-{
+enum class MetaInfo : std::uint8_t{
   EMPTY,
   NOT_EMPTY
 };
@@ -22,8 +21,8 @@ private:
   struct KeyValueStorage{
     T_Key key{};
     T_Value value{};
-  }
-  asdasd
+  };
+  
 
   std::vector<std::uint64_t> hash_storage{};
   std::vector<T_Key> key_storage{};
