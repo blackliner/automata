@@ -8,28 +8,28 @@ public:
 	double x{};
 	double y{};
 
-	Vector2D() = default;
-	Vector2D(double x, double y) : x(x), y(y){};
+	constexpr Vector2D() = default;
+	constexpr Vector2D(double x, double y) : x(x), y(y){};
 
 	static Vector2D Zero() { return {0.0, 0.0}; }
 	static Vector2D One() { return {1.0, 1.0}; }
 
-	Vector2D operator+(const Vector2D rhs) const
+	constexpr Vector2D operator+(const Vector2D rhs) const
 	{
 		return {this->x + rhs.x, this->y + rhs.y};
 	}
 
-	Vector2D operator-(const Vector2D rhs) const
+	constexpr Vector2D operator-(const Vector2D rhs) const
 	{
 		return {this->x - rhs.x, this->y - rhs.y};
 	}
 
-	Vector2D operator*(const double mul) const
+	constexpr Vector2D operator*(const double mul) const
 	{
 		return {this->x * mul, this->y * mul};
 	}
 
-	Vector2D operator/(const double div) const
+	constexpr Vector2D operator/(const double div) const
 	{
 		return {this->x / div, this->y / div};
 	}
@@ -44,7 +44,7 @@ public:
 		return sqrt(this->x * this->x + this->y * this->y);
 	}
 
-	double MagSquared() const
+	constexpr double MagSquared() const
 	{
 		return this->x * this->x + this->y * this->y;
 	}

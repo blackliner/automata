@@ -62,7 +62,6 @@ cc_library(
 
 cc_library(
     name = "path_segment",
-    srcs = ["PathSegment.cpp"],
     hdrs = ["lib/PathSegment.h"],
     copts = ["-Ilib"],
     deps = ["vector2d"],
