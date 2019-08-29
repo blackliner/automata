@@ -49,14 +49,34 @@ void Vehicle::SetType(const VehicleType &type)
 		sensor_type = SensorType::CIRCLE;
 		sensor_circle_radius = 200;
 		break;
+	case VehicleType::FLY:
+		vehicle_type = VehicleType::CIRCLE;
+		sensor_type = SensorType::CIRCLE;
+		sensor_circle_radius = 25;
+		size = 5;
+		break;
+	case VehicleType::BIRD:
+		vehicle_type = VehicleType::ARROW;
+		sensor_type = SensorType::BOTH;
+		sensor_circle_radius = 100;
+		sensor_cone_radius = 500;
+		size = 25;
+		break;
 	}
 }
 
 VehicleType Vehicle::GetRandomType()
 {
-	if (rand() < RAND_MAX / 2)
+	double rand_val{4.0 * rand() / RAND_MAX};
+
+	if (rand_val < 1)
+		return VehicleType::CIRCLE;
+	if (rand_val < 2)
 		return VehicleType::ARROW;
-	return VehicleType::CIRCLE;
+	if (rand_val < 3)
+		return VehicleType::FLY;
+	if (rand_val < 4)
+		return VehicleType::BIRD;
 }
 
 void Vehicle::update(double delta_t)

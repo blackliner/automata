@@ -51,7 +51,7 @@ void Maze::WrapVehiclePositions(Vehicle &vehicle)
 		vehicle.pos.y = 0;
 }
 
-void Maze::DrawVehicle(const Vehicle& vehicle) const
+void Maze::DrawVehicle(const Vehicle &vehicle) const
 {
 	olc::Pixel color{};
 	switch (vehicle.clan)
@@ -69,6 +69,7 @@ void Maze::DrawVehicle(const Vehicle& vehicle) const
 
 	switch (vehicle.vehicle_type)
 	{
+	case VehicleType::BIRD:
 	case VehicleType::ARROW:
 	{
 		auto current_diretion = vehicle.last_heading;
@@ -93,6 +94,7 @@ void Maze::DrawVehicle(const Vehicle& vehicle) const
 		break;
 	}
 	case VehicleType::CIRCLE:
+	case VehicleType::FLY:
 	{
 		DrawCircle(vehicle.pos.x, vehicle.pos.y, vehicle.size, color);
 		break;
@@ -100,12 +102,12 @@ void Maze::DrawVehicle(const Vehicle& vehicle) const
 	}
 }
 
-void Maze::DrawCircleSensor(const Vehicle& vehicle) const
+void Maze::DrawCircleSensor(const Vehicle &vehicle) const
 {
 	DrawCircle(vehicle.pos.x, vehicle.pos.y, vehicle.sensor_circle_radius);
 }
 
-void Maze::DrawAngularSensor(const Vehicle& vehicle) const
+void Maze::DrawAngularSensor(const Vehicle &vehicle) const
 {
 	auto left_cone_part = vehicle.last_heading;
 	left_cone_part.Rotate(vehicle.sensor_angle);
@@ -121,7 +123,7 @@ void Maze::DrawAngularSensor(const Vehicle& vehicle) const
 	DrawLine(vehicle.pos.x, vehicle.pos.y, right_cone_part.x, right_cone_part.y);
 }
 
-void Maze::DrawVehicleSensor(const Vehicle& vehicle) const
+void Maze::DrawVehicleSensor(const Vehicle &vehicle) const
 {
 	switch (vehicle.sensor_type)
 	{

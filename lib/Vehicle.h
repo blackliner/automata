@@ -1,13 +1,13 @@
 #pragma once
 
-#include <cmath>
 #include <algorithm>
-#include <limits>
+#include <cmath>
 #include <functional>
+#include <limits>
 
-#include "Vector2D.h"
 #include "PathSegment.h"
 #include "Perlin.h"
+#include "Vector2D.h"
 
 class Vehicle;
 
@@ -16,7 +16,9 @@ using VehicleStorage = std::vector<std::reference_wrapper<Vehicle>>;
 enum class VehicleType : std::uint8_t
 {
 	ARROW,
-	CIRCLE
+	CIRCLE,
+	FLY,
+	BIRD
 };
 
 enum class SensorType : std::uint8_t
@@ -50,7 +52,7 @@ public:
 	Vector2D pos{};
 	Vector2D vel{};
 	Vector2D acc{};
-	Vector2D last_acc{};						 //for visu purpose
+	Vector2D last_acc{};			 //for visu purpose
 	Vector2D last_heading{0.0, 1.0}; //to know its orientation if speed = 0; always unit vector
 
 	double max_velocity{200}; // pixel / second
