@@ -36,7 +36,7 @@ cc_library(
     srcs = ["Vehicle.cpp"],
     hdrs = ["lib/Vehicle.h"],
     copts = ["-Ilib"],
-    deps = ["path_segment", "perlin"],
+    deps = ["path_segment", "perlin", "weapons"],
     visibility = ["//visibility:public"]
 )
 
@@ -57,6 +57,15 @@ cc_library(
 cc_library(
     name = "vector2d",
     hdrs = ["lib/Vector2D.h"],
+    visibility = ["//visibility:public"]
+)
+
+cc_library(
+    name = "weapons",
+    srcs = ["Weapons.cpp"],
+    hdrs = ["lib/Weapons.h"],
+    copts = ["-Ilib"],
+    deps = ["vector2d"],
     visibility = ["//visibility:public"]
 )
 

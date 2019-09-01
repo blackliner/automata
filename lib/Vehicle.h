@@ -4,10 +4,12 @@
 #include <cmath>
 #include <functional>
 #include <limits>
+#include <memory>
 
 #include "PathSegment.h"
 #include "Perlin.h"
 #include "Vector2D.h"
+#include "Weapons.h"
 
 class Vehicle;
 
@@ -49,11 +51,15 @@ public:
 
 	int ID{};
 
-	Vector2D pos{};
-	Vector2D vel{};
-	Vector2D acc{};
-	Vector2D last_acc{};			 //for visu purpose
-	Vector2D last_heading{0.0, 1.0}; //to know its orientation if speed = 0; always unit vector
+	//  ---------------------state-------------------------
+
+	Vector2D<VectorT> pos{};
+	Vector2D<VectorT> vel{};
+	Vector2D<VectorT> acc{};
+	Vector2D<VectorT> last_acc{};			  //for visu purpose
+	Vector2D<VectorT> last_heading{0.0, 1.0}; //to know its orientation if speed = 0; always unit vector
+
+	//  ---------------------config-------------------------
 
 	double max_velocity{200}; // pixel / second
 	double force_gain{100.0};
@@ -69,20 +75,24 @@ public:
 
 	double health = 10.0;
 
-	// -----------------shooting and stuff----------------
-	Vector2D gun_shell_pos{};
-	Vector2D gun_shell_vel{};
+	Clan clan{};
+	// -----------------Equipment----------------
+
+	Rifle weapon{};
+	// std::unique_ptr<IWeapon> weapon{std::make_unique<Rifle>()};
+
+	// Vector2D<VectorT> gun_shell_pos{};
+	// Vector2D<VectorT> gun_shell_vel{};
 
 	//bool operator==(Clan rhs){return }
-	Clan clan{};
-	bool guns_allowed{};
-	double gun_radius{400.0};
-	double gun_angle{M_PI / 180.0 * 2.5};
-	double gun_shell_max_velocity{500.0};
-	double gun_shell_max_lifetime{1.0};
-	double gun_shell_lifetime{};
-	double gun_shell_radius{3.0};
-	bool gun_shot{};
+
+	// double gun_radius{400.0};
+	// double gun_angle{M_PI / 180.0 * 2.5};
+	// double gun_shell_max_velocity{500.0};
+	// double gun_shell_max_lifetime{1.0};
+	// double gun_shell_lifetime{};
+	// double gun_shell_radius{3.0};
+	// bool gun_shot{};
 
 	// -----------------reproduction--------------
 	double reproduction_radius{2 * size};
@@ -104,9 +114,9 @@ public:
 
 	void update(double delta_t = 1.0);
 
-	Vector2D PredictedPos();
+	Vector2D<VectorT> PredictedPos() const;
 
-	void applyForce(Vector2D force, double delta_t = 1.0);
+	void applyForce(Vector2D<VectorT> force, double delta_t = 1.0);
 
 	VehicleStorage FindClosestVehicle(const VehicleStorage &vehicles);
 
@@ -126,25 +136,25 @@ public:
 
 	VehicleStorage ScanForVehiclesInRange(std::vector<Vehicle> &vehicles);
 
-	Vector2D Seek(Vector2D target_pos);
+	Vector2D<VectorT> Seek(const Vector2D<VectorT> target_pos) const;
 
-	Vector2D Arrive(Vector2D target_pos);
+	Vector2D<VectorT> Arrive(const Vector2D<VectorT> target_pos) const;
 
-	Vector2D FollowPath(std::vector<PathSegment> path);
+	Vector2D<VectorT> FollowPath(const std::vector<PathSegment> &path) const;
 
-	Vector2D Align(VehicleStorage vehicles);
+	Vector2D<VectorT> Align(const VehicleStorage &vehicles) const;
 
-	Vector2D Flee(VehicleStorage vehicles);
+	Vector2D<VectorT> Flee(const VehicleStorage &vehicles) const;
 
-	Vector2D Separate(VehicleStorage vehicles);
+	Vector2D<VectorT> Separate(const VehicleStorage &vehicles) const;
 
-	Vector2D Cohesion(VehicleStorage vehicles);
+	Vector2D<VectorT> Cohesion(const VehicleStorage &vehicles) const;
 
-	Vector2D Wander();
+	Vector2D<VectorT> Wander() const;
 
-	bool IsAlive() { return health > 0; }
+	bool IsAlive() const { return health > 0; }
 
-	void FireGun();
+	// void FireGun();
 
 	bool GunSensor(const std::vector<Vehicle> &vehicles);
 

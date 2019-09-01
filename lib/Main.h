@@ -3,9 +3,9 @@
 #define OLC_PGE_APPLICATION
 #include "olcPixelGameEngine.h"
 
-#include "Vehicle.h"
-#include "Vector2D.h"
 #include "PathSegment.h"
+#include "Vector2D.h"
+#include "Vehicle.h"
 
 constexpr int fBlockWidth = 1;
 constexpr int nWorldWidth = 160 * 8;
@@ -19,11 +19,13 @@ private:
 	const int vehicle_mouse = 0;
 	const int vehicle_roby = 1;
 
+	const bool guns_allowed{};
+
 	std::vector<Vehicle> vehicles = {Vehicle(), Vehicle{nWorldWidth / 2, nWorldHeight / 2}}; //nr1 is our mouse, nr 2 is roby
 	std::vector<Vehicle> new_born;
 	std::vector<PathSegment> path;
 
-	Vector2D first_node{};
+	Vector2D<VectorT> first_node{};
 	bool first_node_valid{};
 	double t_last_pressed{};
 	bool time_freeze{};
@@ -31,13 +33,15 @@ private:
 public:
 	Maze() { sAppName = "Automata"; }
 
-	void DrawArrow(const Vector2D start, const Vector2D end, const olc::Pixel color) const;
+	template <typename T>
+	void DrawArrow(const Vector2D<T> start, const Vector2D<T> end, const olc::Pixel color) const;
 
 	void DrawVehicleVelocity(const Vehicle &vehicle) const;
 
 	void DrawVehicleAcceleration(const Vehicle &vehicle) const;
 
-	void DrawSteering(const Vehicle &vehicle, Vector2D steer) const;
+	template <typename T>
+	void DrawSteering(const Vehicle &vehicle, const Vector2D<T> steer) const;
 
 	void WrapVehiclePositions(Vehicle &vehicle);
 
@@ -51,7 +55,7 @@ public:
 
 	void AddNewVehicle(double x, double y, const VehicleType &type);
 
-	void AddNewPathNode(double x, double y);
+	void AddNewPathNode(VectorT x, VectorT y);
 
 	bool OnUserUpdate(float fElapsedTime) override;
 

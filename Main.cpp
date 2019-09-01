@@ -3,7 +3,8 @@
 
 #include "Main.h"
 
-void Maze::DrawArrow(const Vector2D start, const Vector2D end, const olc::Pixel color) const
+template <typename T>
+void Maze::DrawArrow(const Vector2D<T> start, const Vector2D<T> end, const olc::Pixel color) const
 {
 	DrawLine(start.x, start.y, end.x, end.y, color); //shaft
 
@@ -33,7 +34,8 @@ void Maze::DrawVehicleAcceleration(const Vehicle &vehicle) const
 	}
 }
 
-void Maze::DrawSteering(const Vehicle &vehicle, Vector2D steer) const
+template <typename T>
+void Maze::DrawSteering(const Vehicle &vehicle, const Vector2D<T> steer) const
 {
 	DrawArrow(vehicle.pos, vehicle.pos + steer * 10, olc::WHITE);
 }
@@ -86,9 +88,9 @@ void Maze::DrawVehicle(const Vehicle &vehicle) const
 		DrawLine(p4.x, p4.y, p1.x, p1.y, color);
 
 		//draw gun
-		if (vehicle.gun_shot)
+		if (vehicle.weapon.GetGunShot())
 		{
-			DrawCircle(vehicle.gun_shell_pos.x, vehicle.gun_shell_pos.y, vehicle.gun_shell_radius, color);
+			DrawCircle(vehicle.weapon.GetPos().x, vehicle.weapon.GetPos().y, vehicle.weapon.GetShellRadius(), color);
 		}
 
 		break;
@@ -97,6 +99,13 @@ void Maze::DrawVehicle(const Vehicle &vehicle) const
 	case VehicleType::FLY:
 	{
 		DrawCircle(vehicle.pos.x, vehicle.pos.y, vehicle.size, color);
+
+		//draw gun
+		if (vehicle.weapon.GetGunShot())
+		{
+			DrawCircle(vehicle.weapon.GetPos().x, vehicle.weapon.GetPos().y, vehicle.weapon.GetShellRadius(), color);
+		}
+
 		break;
 	}
 	}
@@ -149,7 +158,7 @@ void Maze::AddNewVehicle(double x, double y, const VehicleType &type)
 	new_born.push_back(new_vehicle);
 }
 
-void Maze::AddNewPathNode(double x, double y)
+void Maze::AddNewPathNode(VectorT x, VectorT y)
 {
 	if (!first_node_valid)
 	{
@@ -189,7 +198,7 @@ bool Maze::OnUserUpdate(float fElapsedTime)
 	Clear(olc::BLACK);
 
 	auto &target = vehicles[vehicle_mouse];
-	auto tau = fElapsedTime / (0.2 + fElapsedTime);
+	auto tau = fElapsedTime / (2 / 10 + fElapsedTime);
 	auto last_pos = target.pos;
 	auto last_vel = target.vel;
 	target.update(fElapsedTime);
@@ -235,11 +244,15 @@ bool Maze::OnUserUpdate(float fElapsedTime)
 	for (auto vehicle = std::next(vehicles.begin()); vehicle != vehicles.end(); vehicle = std::next(vehicle))
 	//for (auto& vehicle : vehicles)
 	{
-		if (vehicle->GunSensor(vehicles))
+
+		if (guns_allowed)
 		{
-			vehicle->FireGun();
+			if (vehicle->GunSensor(vehicles))
+			{
+				vehicle->weapon.FireGun(vehicle->pos, vehicle->last_heading, vehicle->size);
+			}
+			vehicle->CheckForHits(vehicles);
 		}
-		vehicle->CheckForHits(vehicles);
 
 		auto found_vehicles = vehicle->ScanForVehiclesInRange(vehicles);
 		auto found_target = vehicle->FindClosestVehicle(found_vehicles);

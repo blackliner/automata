@@ -5,11 +5,11 @@
 class PathSegment
 {
 public:
-	Vector2D p1{};
-	Vector2D p2{};
+	Vector2D<VectorT> p1{};
+	Vector2D<VectorT> p2{};
 	double size{30.0};
 
-	constexpr bool IsPointOnSegment(const Vector2D &point) const
+	constexpr bool IsPointOnSegment(const Vector2D<VectorT> point) const
 	{
 		double left{};
 		double right{};
@@ -40,7 +40,7 @@ public:
 		return point.x >= left && point.x <= right && point.y >= up && point.y <= down;
 	}
 
-	constexpr Vector2D GetClosestPoint(const Vector2D &point) const
+	constexpr Vector2D<VectorT> GetClosestPoint(const Vector2D<VectorT> point) const
 	{
 		auto distance_p1 = (point - p1).MagSquared();
 		auto distance_p2 = (point - p2).MagSquared();

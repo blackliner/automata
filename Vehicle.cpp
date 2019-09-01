@@ -54,6 +54,7 @@ void Vehicle::SetType(const VehicleType &type)
 		sensor_type = SensorType::CIRCLE;
 		sensor_circle_radius = 25;
 		size = 5;
+		max_force *= 10;
 		break;
 	case VehicleType::BIRD:
 		vehicle_type = VehicleType::ARROW;
@@ -87,7 +88,7 @@ void Vehicle::update(double delta_t)
 	vel.Limit(max_velocity);
 	pos = pos + vel * delta_t; //  +acc * delta_t * delta_t / 2.0;
 
-	acc = Vector2D::Zero();
+	acc = Vector2D<VectorT>::Zero();
 
 	if (vel.MagSquared() > 0.0001)
 	{
@@ -107,25 +108,25 @@ void Vehicle::update(double delta_t)
 		reproduction_ready = true;
 	}
 
-	// update gun
+	// // update gun
 
-	if (gun_shell_lifetime < gun_shell_max_lifetime)
-	{
-		gun_shell_pos = gun_shell_pos + gun_shell_vel * delta_t;
-		gun_shell_lifetime += delta_t;
-	}
-	else
-	{
-		gun_shot = false;
-	}
+	// if (gun_shell_lifetime < gun_shell_max_lifetime)
+	// {
+	// 	gun_shell_pos = gun_shell_pos + gun_shell_vel * delta_t;
+	// 	gun_shell_lifetime += delta_t;
+	// }
+	// else
+	// {
+	// 	gun_shot = false;
+	// }
 }
 
-Vector2D Vehicle::PredictedPos()
+Vector2D<VectorT> Vehicle::PredictedPos() const
 {
 	return pos + vel * 0.2;
 }
 
-void Vehicle::applyForce(Vector2D force, double delta_t)
+void Vehicle::applyForce(Vector2D<VectorT> force, double delta_t)
 {
 	if (delta_t > 0.0)
 		acc = acc + force; // / delta_t;
@@ -253,7 +254,7 @@ VehicleStorage Vehicle::ScanForVehiclesInRange(std::vector<Vehicle> &vehicles)
 	return CircularSensor(vehicles);
 }
 
-Vector2D Vehicle::Seek(Vector2D target_pos)
+Vector2D<VectorT> Vehicle::Seek(const Vector2D<VectorT> target_pos) const
 {
 	auto desired = (target_pos - pos);
 	desired.SetMag(max_velocity);
@@ -264,7 +265,7 @@ Vector2D Vehicle::Seek(Vector2D target_pos)
 	return steer;
 }
 
-Vector2D Vehicle::Arrive(Vector2D target_pos)
+Vector2D<VectorT> Vehicle::Arrive(const Vector2D<VectorT> target_pos) const
 {
 	auto desired = (target_pos - pos);
 	auto distance = desired.Mag();
@@ -279,9 +280,9 @@ Vector2D Vehicle::Arrive(Vector2D target_pos)
 	return steer;
 }
 
-Vector2D Vehicle::FollowPath(std::vector<PathSegment> path)
+Vector2D<VectorT> Vehicle::FollowPath(const std::vector<PathSegment> &path) const
 {
-	Vector2D steer{}, target{}, normal_point{}, best_normal_point{};
+	Vector2D<VectorT> steer{}, target{}, normal_point{}, best_normal_point{};
 	auto min_distance_squared = std::numeric_limits<double>().max();
 
 	auto pos_to_check = PredictedPos();
@@ -324,9 +325,9 @@ Vector2D Vehicle::FollowPath(std::vector<PathSegment> path)
 	return steer;
 }
 
-Vector2D Vehicle::Align(VehicleStorage vehicles)
+Vector2D<VectorT> Vehicle::Align(const VehicleStorage &vehicles) const
 {
-	Vector2D desired{}, steer{};
+	Vector2D<VectorT> desired{}, steer{};
 
 	for (auto vehicle : vehicles)
 	{
@@ -345,9 +346,9 @@ Vector2D Vehicle::Align(VehicleStorage vehicles)
 	return steer;
 }
 
-Vector2D Vehicle::Flee(VehicleStorage vehicles)
+Vector2D<VectorT> Vehicle::Flee(const VehicleStorage &vehicles) const
 {
-	Vector2D desired{};
+	Vector2D<VectorT> desired{};
 
 	for (auto vehicle : vehicles)
 	{
@@ -363,9 +364,9 @@ Vector2D Vehicle::Flee(VehicleStorage vehicles)
 	return steer;
 }
 
-Vector2D Vehicle::Separate(VehicleStorage vehicles)
+Vector2D<VectorT> Vehicle::Separate(const VehicleStorage &vehicles) const
 {
-	Vector2D desired{}, steer{};
+	Vector2D<VectorT> desired{}, steer{};
 	int count{};
 
 	for (auto vehicle : vehicles)
@@ -378,7 +379,7 @@ Vector2D Vehicle::Separate(VehicleStorage vehicles)
 			diff.Normalize();
 			diff = diff / distance;
 			desired = desired + diff;
-			count++;
+			++count;
 		}
 	}
 
@@ -393,9 +394,9 @@ Vector2D Vehicle::Separate(VehicleStorage vehicles)
 	return steer;
 }
 
-Vector2D Vehicle::Cohesion(VehicleStorage vehicles)
+Vector2D<VectorT> Vehicle::Cohesion(const VehicleStorage &vehicles) const
 {
-	Vector2D desired_position{}, steer{};
+	Vector2D<VectorT> desired_position{}, steer{};
 
 	for (auto vehicle : vehicles)
 	{
@@ -410,12 +411,12 @@ Vector2D Vehicle::Cohesion(VehicleStorage vehicles)
 	return steer;
 }
 
-Vector2D Vehicle::Wander()
+Vector2D<VectorT> Vehicle::Wander() const
 {
 	auto perlin = Noise::noise(pos.x / 1000.0, pos.y / 1000.0, health / 1000.0);
 	auto next_direction = perlin * M_PI * 2.0;
 
-	Vector2D desired{sin(next_direction), cos(next_direction)};
+	Vector2D<VectorT> desired{sin(next_direction), cos(next_direction)};
 	desired.SetMag(0.25 * max_velocity);
 
 	//auto steer = desired - vel;
@@ -425,32 +426,29 @@ Vector2D Vehicle::Wander()
 	return steer;
 }
 
-void Vehicle::FireGun()
-{
-	if (!guns_allowed || gun_shot)
-		return;
-	gun_shot = true;
+// void Vehicle::FireGun()
+// {
+// 	if (gun_shot)
+// 		return;
+// 	gun_shot = true;
 
-	gun_shell_lifetime = 0.0;
-	gun_shell_pos = pos + last_heading * 2 * size; //start it a bit away, don't hit yourself :D
-	gun_shell_vel = last_heading;
-	gun_shell_vel.SetMag(gun_shell_max_velocity);
-}
+// 	gun_shell_lifetime = 0.0;
+// 	gun_shell_pos = pos + last_heading * 2 * size; //start it a bit away, don't hit yourself :D
+// 	gun_shell_vel = last_heading;
+// 	gun_shell_vel.SetMag(gun_shell_max_velocity);
+// }
 
 bool Vehicle::GunSensor(const std::vector<Vehicle> &vehicles)
 {
-	if (!guns_allowed)
-		return false;
-
 	for (auto vehicle : vehicles)
 	{
 		auto distance_squared = (vehicle.pos - pos).MagSquared();
-		auto is_cone_distance_ok = (distance_squared > 0) && (distance_squared < (gun_radius * gun_radius));
+		auto is_cone_distance_ok = (distance_squared > 0) && (distance_squared < (weapon.GetGunRange() * weapon.GetGunRange()));
 
 		auto a = vehicle.pos - pos;
 		auto b = last_heading;
 		auto angle_to_vehicle = acos(a.Dot(b) / (a.Mag() * b.Mag()));
-		auto is_angle_ok = angle_to_vehicle < gun_angle;
+		auto is_angle_ok = angle_to_vehicle < weapon.GetGunAngle();
 
 		auto is_enemy_clan = CheckEnemyClan(vehicle);
 
@@ -465,13 +463,10 @@ void Vehicle::CheckForHits(const std::vector<Vehicle> &vehicles)
 {
 	for (auto vehicle : vehicles)
 	{
-		if (CheckEnemyClan(vehicle) && vehicle.gun_shot)
+		if (CheckEnemyClan(vehicle))
 		{
-			auto distance_squared = (vehicle.gun_shell_pos - pos).MagSquared();
-			if (distance_squared < (vehicle.gun_shell_radius + size) * (vehicle.gun_shell_radius + size))
+			if (vehicle.weapon.CheckHit(pos, size))
 			{
-				// we are hit!
-				vehicle.gun_shot = false;
 				health = 0.0;
 			}
 		}

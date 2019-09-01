@@ -2,14 +2,17 @@
 
 #include <cmath>
 
+using VectorT = double;
+
+template <typename T>
 class Vector2D
 {
 public:
-	double x{};
-	double y{};
+	T x{};
+	T y{};
 
 	constexpr Vector2D() = default;
-	constexpr Vector2D(double x, double y) : x(x), y(y){};
+	constexpr Vector2D(T x, T y) : x(x), y(y){};
 
 	static Vector2D Zero() { return {0.0, 0.0}; }
 	static Vector2D One() { return {1.0, 1.0}; }
@@ -24,27 +27,27 @@ public:
 		return {this->x - rhs.x, this->y - rhs.y};
 	}
 
-	constexpr Vector2D operator*(const double mul) const
+	constexpr Vector2D operator*(const T mul) const
 	{
 		return {this->x * mul, this->y * mul};
 	}
 
-	constexpr Vector2D operator/(const double div) const
+	constexpr Vector2D operator/(const T div) const
 	{
 		return {this->x / div, this->y / div};
 	}
 
-	double Dot(const Vector2D value)
+	T Dot(const Vector2D value)
 	{
 		return x * value.x + y * value.y;
 	}
 
-	double Mag() const
+	T Mag() const
 	{
 		return sqrt(this->x * this->x + this->y * this->y);
 	}
 
-	constexpr double MagSquared() const
+	constexpr T MagSquared() const
 	{
 		return this->x * this->x + this->y * this->y;
 	}
@@ -59,19 +62,19 @@ public:
 		}
 	}
 
-	void SetMag(double val)
+	void SetMag(T val)
 	{
 		Normalize();
 		*this = *this * val;
 	}
 
-	void Limit(double value)
+	void Limit(T value)
 	{
 		if (MagSquared() > (value * value))
 			SetMag(value);
 	}
 
-	void Rotate(double angle)
+	void Rotate(T angle)
 	{
 		auto x_temp = this->x * cos(angle) - this->y * sin(angle);
 		y = this->x * sin(angle) + this->y * cos(angle);
@@ -82,7 +85,8 @@ private:
 };
 
 // move to cpp and remove inline
-inline const Vector2D NormalPoint(Vector2D position, Vector2D line_start, Vector2D line_end)
+template <typename T>
+constexpr Vector2D<T> NormalPoint(Vector2D<T> position, Vector2D<T> line_start, Vector2D<T> line_end)
 {
 	auto a = position - line_start;
 	auto b = line_end - line_start;
@@ -94,4 +98,8 @@ inline const Vector2D NormalPoint(Vector2D position, Vector2D line_start, Vector
 }
 
 // move to cpp and remove inline
-inline Vector2D operator*(double lhs, Vector2D rhs) { return rhs * lhs; }
+template <typename T>
+constexpr Vector2D<T> operator*(float lhs, Vector2D<T> rhs) { return rhs * lhs; }
+
+template <typename T>
+constexpr Vector2D<T> operator*(double lhs, Vector2D<T> rhs) { return rhs * lhs; }
