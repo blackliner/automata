@@ -122,19 +122,19 @@ public:
 
 	VehicleStorage FindClosestMatingPartner(const VehicleStorage &vehicles);
 
-	bool CheckEnemyClan(Vehicle vehicle);
+	bool CheckEnemyClan(const Vehicle &vehicle) const;
 
-	bool CheckInDistance(Vehicle vehicle, double distance);
+	bool CheckInDistance(const Vehicle &vehicle, double distance) const;
 
-	bool CheckInCone(Vehicle vehicle, double angle);
+	bool CheckInCone(const Vehicle &vehicle, double angle) const;
 
-	VehicleStorage CircularSensor(std::vector<Vehicle> &vehicles);
+	VehicleStorage CircularSensor(std::vector<Vehicle> &vehicles) const;
 
-	VehicleStorage AngularSensor(std::vector<Vehicle> &vehicles);
+	VehicleStorage AngularSensor(std::vector<Vehicle> &vehicles) const;
 
-	VehicleStorage BothSensor(std::vector<Vehicle> &vehicles);
+	VehicleStorage BothSensor(std::vector<Vehicle> &vehicles) const;
 
-	VehicleStorage ScanForVehiclesInRange(std::vector<Vehicle> &vehicles);
+	VehicleStorage ScanForVehiclesInRange(std::vector<Vehicle> &vehicles) const;
 
 	Vector2D<VectorT> Seek(const Vector2D<VectorT> target_pos) const;
 

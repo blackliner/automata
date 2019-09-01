@@ -19,7 +19,7 @@ private:
 	const int vehicle_mouse = 0;
 	const int vehicle_roby = 1;
 
-	const bool guns_allowed{};
+	const bool guns_allowed{false};
 
 	std::vector<Vehicle> vehicles = {Vehicle(), Vehicle{nWorldWidth / 2, nWorldHeight / 2}}; //nr1 is our mouse, nr 2 is roby
 	std::vector<Vehicle> new_born;

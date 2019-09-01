@@ -252,6 +252,8 @@ bool Maze::OnUserUpdate(float fElapsedTime)
 				vehicle->weapon.FireGun(vehicle->pos, vehicle->last_heading, vehicle->size);
 			}
 			vehicle->CheckForHits(vehicles);
+
+			vehicle->weapon.Update(fElapsedTime);
 		}
 
 		auto found_vehicles = vehicle->ScanForVehiclesInRange(vehicles);

@@ -138,7 +138,7 @@ VehicleStorage Vehicle::FindClosestVehicle(const VehicleStorage &vehicles)
 
 	if (!vehicles.empty())
 	{
-		auto closest = std::min_element(vehicles.begin(), vehicles.end(), [this](Vehicle a, Vehicle b) {
+		auto closest = std::min_element(vehicles.begin(), vehicles.end(), [this](const Vehicle &a, const Vehicle &b) {
 			auto dist_a = (a.pos - pos).MagSquared();
 			auto dist_b = (b.pos - pos).MagSquared();
 			return dist_a < dist_b;
@@ -181,19 +181,19 @@ VehicleStorage Vehicle::FindClosestMatingPartner(const VehicleStorage &vehicles)
 	return ret_value;
 }
 
-bool Vehicle::CheckEnemyClan(Vehicle vehicle)
+bool Vehicle::CheckEnemyClan(const Vehicle &vehicle) const
 {
 	return clan != vehicle.clan;
 }
 
-bool Vehicle::CheckInDistance(Vehicle vehicle, double distance)
+bool Vehicle::CheckInDistance(const Vehicle &vehicle, double distance) const
 {
 	auto distance_squared = (vehicle.pos - pos).MagSquared();
 	auto is_circle_distance_ok = (distance_squared > 0) && (distance_squared < (distance * distance));
 	return is_circle_distance_ok;
 }
 
-bool Vehicle::CheckInCone(Vehicle vehicle, double angle)
+bool Vehicle::CheckInCone(const Vehicle &vehicle, double angle) const
 {
 	auto a = vehicle.pos - pos;
 	auto b = last_heading;
@@ -201,7 +201,7 @@ bool Vehicle::CheckInCone(Vehicle vehicle, double angle)
 	return angle_to_vehicle < angle;
 }
 
-VehicleStorage Vehicle::CircularSensor(std::vector<Vehicle> &vehicles)
+VehicleStorage Vehicle::CircularSensor(std::vector<Vehicle> &vehicles) const
 {
 	VehicleStorage ret_value;
 
@@ -214,7 +214,7 @@ VehicleStorage Vehicle::CircularSensor(std::vector<Vehicle> &vehicles)
 	return ret_value;
 }
 
-VehicleStorage Vehicle::AngularSensor(std::vector<Vehicle> &vehicles)
+VehicleStorage Vehicle::AngularSensor(std::vector<Vehicle> &vehicles) const
 {
 	VehicleStorage ret_value;
 
@@ -227,7 +227,7 @@ VehicleStorage Vehicle::AngularSensor(std::vector<Vehicle> &vehicles)
 	return ret_value;
 }
 
-VehicleStorage Vehicle::BothSensor(std::vector<Vehicle> &vehicles)
+VehicleStorage Vehicle::BothSensor(std::vector<Vehicle> &vehicles) const
 {
 	VehicleStorage ret_value;
 
@@ -240,7 +240,7 @@ VehicleStorage Vehicle::BothSensor(std::vector<Vehicle> &vehicles)
 	return ret_value;
 }
 
-VehicleStorage Vehicle::ScanForVehiclesInRange(std::vector<Vehicle> &vehicles)
+VehicleStorage Vehicle::ScanForVehiclesInRange(std::vector<Vehicle> &vehicles) const
 {
 	switch (sensor_type)
 	{
