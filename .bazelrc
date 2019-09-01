@@ -1,1 +1,1 @@
-build --cxxopt='-std=c++17' -c opt
+build --cxxopt='-std=c++17' -c opt --copt="-pg" --cxxopt="-pg" --linkopt="-pg"

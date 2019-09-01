@@ -75,8 +75,8 @@ VehicleType Vehicle::GetRandomType()
 		return VehicleType::ARROW;
 	if (rand_val < 3)
 		return VehicleType::FLY;
-	if (rand_val < 4)
-		return VehicleType::BIRD;
+
+	return VehicleType::BIRD;
 }
 
 void Vehicle::update(double delta_t)
