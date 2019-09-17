@@ -10,6 +10,7 @@
 #include "Perlin.h"
 #include "Vector2D.h"
 #include "Weapons.h"
+#include "Renderer.h"
 
 class Vehicle;
 
@@ -17,23 +18,23 @@ using VehicleStorage = std::vector<std::reference_wrapper<Vehicle>>;
 
 enum class VehicleType : std::uint8_t
 {
-	ARROW,
-	CIRCLE,
-	FLY,
-	BIRD
+  TRIANGLE,
+  CIRCLE,
+  FLY,
+  BIRD
 };
 
 enum class SensorType : std::uint8_t
 {
-	CIRCLE,
-	ANGULAR,
-	BOTH
+  CIRCLE,
+  ANGULAR,
+  BOTH
 };
 
 enum class Clan : std::uint8_t
 {
-	RED,
-	BLUE
+  RED,
+  BLUE
 };
 
 double Map(double value, double from_start, double from_end, double to_start, double to_end);
@@ -41,126 +42,128 @@ double Map(double value, double from_start, double from_end, double to_start, do
 class Vehicle
 {
 private:
-	static int current_id;
+  static int current_id;
 
-	void InitVehicle();
+  void InitVehicle();
+
+  IRenderer* m_renderer;
 
 public:
-	Vehicle();
-	Vehicle(double x, double y);
+  explicit Vehicle(IRenderer* renderer) : m_renderer(renderer)
+  {
+    InitVehicle();
+  };
 
-	int ID{};
+  int ID{};
 
-	//  ---------------------state-------------------------
 
-	Vector2D<VectorT> pos{};
-	Vector2D<VectorT> vel{};
-	Vector2D<VectorT> acc{};
-	Vector2D<VectorT> last_acc{};			  //for visu purpose
-	Vector2D<VectorT> last_heading{0.0, 1.0}; //to know its orientation if speed = 0; always unit vector
+  //  ---------------------state-------------------------
 
-	//  ---------------------config-------------------------
+  Vector2D<VectorT> pos{};
+  Vector2D<VectorT> vel{};
+  Vector2D<VectorT> acc{};
+  Vector2D<VectorT> last_acc{};        //for visu purpose
+  Vector2D<VectorT> last_heading{0.0, 1.0}; //to know its orientation if speed = 0; always unit vector
 
-	double max_velocity{200}; // pixel / second
-	double force_gain{100.0};
-	double max_force{1000}; // velocity / second
-	double size{20};
-	double sensor_circle_radius{50.0};
-	double sensor_angle{0.4 * M_PI * 2.0};
-	double sensor_cone_radius{300.0};
+  //  ---------------------config-------------------------
 
-	SensorType sensor_type = SensorType::BOTH;
+  double max_velocity{200}; // pixel / second
+  double max_force{1000}; // velocity / second
+  double size{20};
+  double sensor_circle_radius{50.0};
+  double sensor_angle{0.4 * M_PI * 2.0};
+  double sensor_cone_radius{300.0};
 
-	VehicleType vehicle_type = VehicleType::CIRCLE;
+  SensorType sensor_type = SensorType::BOTH;
 
-	double health = 10.0;
+  VehicleType vehicle_type = VehicleType::CIRCLE;
 
-	Clan clan{};
-	// -----------------Equipment----------------
+  double health = 10.0;
 
-	Rifle weapon{};
-	// std::unique_ptr<IWeapon> weapon{std::make_unique<Rifle>()};
+  Clan clan{};
+  // -----------------Equipment----------------
 
-	// Vector2D<VectorT> gun_shell_pos{};
-	// Vector2D<VectorT> gun_shell_vel{};
+  Rifle weapon{};
 
-	//bool operator==(Clan rhs){return }
+  // -----------------reproduction--------------
+  double reproduction_radius{2 * size};
+  double reproduction_chance{0.01};
+  double reproduction_time{};
+  double reproduction_waiting_time{5};
+  bool reproduction_ready{};
 
-	// double gun_radius{400.0};
-	// double gun_angle{M_PI / 180.0 * 2.5};
-	// double gun_shell_max_velocity{500.0};
-	// double gun_shell_max_lifetime{1.0};
-	// double gun_shell_lifetime{};
-	// double gun_shell_radius{3.0};
-	// bool gun_shot{};
+  // -----------------operators-----------------
 
-	// -----------------reproduction--------------
-	double reproduction_radius{2 * size};
-	double reproduction_chance{0.01};
-	double reproduction_time{};
-	double reproduction_waiting_time{5};
-	double reproduction_ready{};
+  bool operator==(const Vehicle &v)
+  {
+    return ID == v.ID;
+  };
 
-	// -----------------operators-----------------
+  bool operator!=(const Vehicle &v)
+  {
+    return !(*this == v);
+  };
 
-	bool operator==(const Vehicle &v) { return ID == v.ID; };
-	bool operator!=(const Vehicle &v) { return !(*this == v); };
+  // --------------stuff --------------
 
-	// --------------stuff --------------
+  void Draw();
 
-	void SetType(const VehicleType &type);
+  void SetType(const VehicleType &type);
 
-	static VehicleType GetRandomType();
+  static VehicleType GetRandomType();
 
-	void update(double delta_t = 1.0);
+  void update(double delta_t = 1.0);
 
-	Vector2D<VectorT> PredictedPos() const;
+  Vector2D<VectorT> PredictedPos() const;
 
-	void applyForce(Vector2D<VectorT> force, double delta_t = 1.0);
+  void applyForce(Vector2D<VectorT> force, double delta_t = 1.0);
 
-	VehicleStorage FindClosestVehicle(const VehicleStorage &vehicles);
+  VehicleStorage FindClosestVehicle(const VehicleStorage &vehicles);
 
-	VehicleStorage FindClosestMatingPartner(const VehicleStorage &vehicles);
+  VehicleStorage FindClosestMatingPartner(const VehicleStorage &vehicles);
 
-	bool CheckEnemyClan(const Vehicle &vehicle) const;
+  bool CheckEnemyClan(const Vehicle &vehicle) const;
 
-	bool CheckInDistance(const Vehicle &vehicle, double distance) const;
+  bool CheckInDistance(const Vehicle &vehicle, double distance) const;
 
-	bool CheckInCone(const Vehicle &vehicle, double angle) const;
+  bool CheckInCone(const Vehicle &vehicle, double angle) const;
 
-	VehicleStorage CircularSensor(std::vector<Vehicle> &vehicles) const;
+  VehicleStorage CircularSensor(std::vector<Vehicle> &vehicles) const;
 
-	VehicleStorage AngularSensor(std::vector<Vehicle> &vehicles) const;
+  VehicleStorage AngularSensor(std::vector<Vehicle> &vehicles) const;
 
-	VehicleStorage BothSensor(std::vector<Vehicle> &vehicles) const;
+  VehicleStorage BothSensor(std::vector<Vehicle> &vehicles) const;
 
-	VehicleStorage ScanForVehiclesInRange(std::vector<Vehicle> &vehicles) const;
+  VehicleStorage ScanForVehiclesInRange(std::vector<Vehicle> &vehicles) const;
 
-	Vector2D<VectorT> Seek(const Vector2D<VectorT> target_pos) const;
+  Vector2D<VectorT> Seek(const Vector2D<VectorT> target_pos) const;
 
-	Vector2D<VectorT> Arrive(const Vector2D<VectorT> target_pos) const;
+  Vector2D<VectorT> Arrive(const Vector2D<VectorT> target_pos) const;
 
-	Vector2D<VectorT> FollowPath(const std::vector<PathSegment> &path) const;
+  Vector2D<VectorT> FollowPath(const std::vector<PathSegment> &path) const;
 
-	Vector2D<VectorT> Align(const VehicleStorage &vehicles) const;
+  Vector2D<VectorT> Align(const VehicleStorage &vehicles) const;
 
-	Vector2D<VectorT> Flee(const VehicleStorage &vehicles) const;
+  Vector2D<VectorT> Flee(const VehicleStorage &vehicles) const;
 
-	Vector2D<VectorT> Separate(const VehicleStorage &vehicles) const;
+  Vector2D<VectorT> Separate(const VehicleStorage &vehicles) const;
 
-	Vector2D<VectorT> Cohesion(const VehicleStorage &vehicles) const;
+  Vector2D<VectorT> Cohesion(const VehicleStorage &vehicles) const;
 
-	Vector2D<VectorT> Wander() const;
+  Vector2D<VectorT> Wander() const;
 
-	bool IsAlive() const { return health > 0; }
+  bool IsAlive() const
+  {
+    return health > 0;
+  }
 
-	// void FireGun();
+  // void FireGun();
 
-	bool GunSensor(const std::vector<Vehicle> &vehicles);
+  bool GunSensor(const std::vector<Vehicle> &vehicles);
 
-	void CheckForHits(const std::vector<Vehicle> &vehicles);
+  void CheckForHits(const std::vector<Vehicle> &vehicles);
 
-	Vehicle Reproduce(const VehicleStorage &vehicles);
+  Vehicle Reproduce(const VehicleStorage &vehicles);
 };
 
 // move to cpp and remove inline

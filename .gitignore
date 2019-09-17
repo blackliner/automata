@@ -1,1 +1,7 @@
 /bazel-*
+
+.vscode
+
+.clwb
+
+profile_report

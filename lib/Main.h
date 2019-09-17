@@ -1,6 +1,7 @@
 #pragma once
 
 #define OLC_PGE_APPLICATION
+
 #include "olcPixelGameEngine.h"
 
 #include "PathSegment.h"
@@ -13,51 +14,81 @@ constexpr int nWorldHeight = 120 * 8;
 constexpr int nDisplayWidth = nWorldWidth * fBlockWidth;
 constexpr int nDisplayHeight = nWorldHeight * fBlockWidth;
 
+olc::Pixel ColorConverter(IRenderer::Color color)
+{
+  switch (color)
+  {
+    case IRenderer::Color::GREEN:
+      return olc::GREEN;
+    case IRenderer::Color::BLUE:
+      return olc::BLUE;
+    case IRenderer::Color::DARK_YELLOW:
+      return olc::DARK_YELLOW;
+    case IRenderer::Color::RED:
+      return olc::RED;
+      case IRenderer::Color::WHITE:
+      return olc::WHITE;
+  }
+
+  throw std::runtime_error("Unhandled enum type.");
+}
+
 class Maze : public olc::PixelGameEngine
 {
 private:
-	const int vehicle_mouse = 0;
-	const int vehicle_roby = 1;
 
-	const bool guns_allowed{false};
+  class OLCRenderer : public IRenderer
+  {
+  private:
+    olc::PixelGameEngine &m_engine;
 
-	std::vector<Vehicle> vehicles = {Vehicle(), Vehicle{nWorldWidth / 2, nWorldHeight / 2}}; //nr1 is our mouse, nr 2 is roby
-	std::vector<Vehicle> new_born;
-	std::vector<PathSegment> path;
+  public:
+    explicit OLCRenderer(olc::PixelGameEngine &engine) : m_engine(engine)
+    {
+    };
 
-	Vector2D<VectorT> first_node{};
-	bool first_node_valid{};
-	double t_last_pressed{};
-	bool time_freeze{};
+    void DrawLine(Vector2D<VectorT> start, Vector2D<VectorT> end, IRenderer::Color color) const override
+    {
+      m_engine.DrawLine(static_cast<int>(start.x), static_cast<int>(start.y), static_cast<int>(end.x),
+                        static_cast<int>(end.y), ColorConverter(color));
+    };
+
+    void DrawCircle(Vector2D<VectorT> position, double radius, Color color) const override
+    {
+      m_engine.DrawCircle(position.x, position.y, radius, ColorConverter(color));
+    }
+  };
+
+
+  const int vehicle_mouse = 0;
+  const int vehicle_roby = 1;
+
+  const bool guns_allowed{false};
+
+  OLCRenderer renderer;
+
+  std::vector<Vehicle> vehicles; //nr1 is our mouse, nr 2 is roby
+  std::vector<Vehicle> new_born;
+  std::vector<PathSegment> path;
+
+  Vector2D<VectorT> first_node{};
+  bool first_node_valid{};
+  double t_last_pressed{};
+  bool time_freeze{};
 
 public:
-	Maze() { sAppName = "Automata"; }
+  Maze() : renderer(OLCRenderer(*this))
+  {
+    sAppName = "Automata";
+  }
 
-	template <typename T>
-	void DrawArrow(const Vector2D<T> start, const Vector2D<T> end, const olc::Pixel color) const;
+  void WrapVehiclePositions(Vehicle &vehicle);
 
-	void DrawVehicleVelocity(const Vehicle &vehicle) const;
+  void AddNewVehicle(double x, double y, const VehicleType &type);
 
-	void DrawVehicleAcceleration(const Vehicle &vehicle) const;
+  void AddNewPathNode(VectorT x, VectorT y);
 
-	template <typename T>
-	void DrawSteering(const Vehicle &vehicle, const Vector2D<T> steer) const;
+  bool OnUserUpdate(float fElapsedTime) override;
 
-	void WrapVehiclePositions(Vehicle &vehicle);
-
-	void DrawVehicle(const Vehicle &vehicle) const;
-
-	void DrawCircleSensor(const Vehicle &vehicle) const;
-
-	void DrawAngularSensor(const Vehicle &vehicle) const;
-
-	void DrawVehicleSensor(const Vehicle &vehicle) const;
-
-	void AddNewVehicle(double x, double y, const VehicleType &type);
-
-	void AddNewPathNode(VectorT x, VectorT y);
-
-	bool OnUserUpdate(float fElapsedTime) override;
-
-	bool OnUserCreate() override { return true; }
+  bool OnUserCreate() override;
 };
