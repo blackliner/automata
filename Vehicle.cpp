@@ -70,7 +70,7 @@ VehicleType Vehicle::GetRandomType()
   return VehicleType::BIRD;
 }
 
-void Vehicle::update(double delta_t)
+void Vehicle::UpdateKinematics(double delta_t)
 {
   last_acc = acc;
 
@@ -94,10 +94,10 @@ void Vehicle::update(double delta_t)
     reproduction_time += delta_t;
   } else
   {
-    reproduction_ready = true;
+    m_reproduction_ready = true;
   }
 
-  // // update gun
+  // // UpdateKinematics gun
 
   // if (gun_shell_lifetime < gun_shell_max_lifetime)
   // {
@@ -160,7 +160,7 @@ VehicleStorage Vehicle::FindClosestMatingPartner(const VehicleStorage &vehicles)
     {
       for (auto vehicle : vehicles)
       {
-        if (vehicle.get().reproduction_ready)
+        if (vehicle.get().m_reproduction_ready)
         {
           ret_value.push_back(vehicle);
           break;
@@ -247,7 +247,7 @@ VehicleStorage Vehicle::ScanForVehiclesInRange(std::vector<Vehicle> &vehicles) c
   throw std::runtime_error("Unknown enum value.");
 }
 
-Vector2D<VectorT> Vehicle::Seek(const Vector2D<VectorT> target_pos) const
+Vector2D<VectorT> Vehicle::Seek(const Vector2D<VectorT> &target_pos) const
 {
   auto desired = (target_pos - pos);
   desired.SetMag(max_velocity);
@@ -258,7 +258,7 @@ Vector2D<VectorT> Vehicle::Seek(const Vector2D<VectorT> target_pos) const
   return steer;
 }
 
-Vector2D<VectorT> Vehicle::Arrive(const Vector2D<VectorT> target_pos) const
+Vector2D<VectorT> Vehicle::Arrive(const Vector2D<VectorT> &target_pos) const
 {
   auto desired = (target_pos - pos);
   auto distance = desired.Mag();
@@ -412,27 +412,15 @@ Vector2D<VectorT> Vehicle::Wander() const
   return steer;
 }
 
-// void Vehicle::FireGun()
-// {
-// 	if (gun_shot)
-// 		return;
-// 	gun_shot = true;
-
-// 	gun_shell_lifetime = 0.0;
-// 	gun_shell_pos = pos + last_heading * 2 * size; //start it a bit away, don't hit yourself :D
-// 	gun_shell_vel = last_heading;
-// 	gun_shell_vel.SetMag(gun_shell_max_velocity);
-// }
-
-bool Vehicle::GunSensor(const std::vector<Vehicle> &vehicles)
+bool Vehicle::GunSensor(const VehicleStorage &vehicles)
 {
   for (const auto &vehicle : vehicles)
   {
-    auto distance_squared = (vehicle.pos - pos).MagSquared();
+    auto distance_squared = (vehicle.get().pos - pos).MagSquared();
     auto is_cone_distance_ok =
         (distance_squared > 0) && (distance_squared < (weapon.GetGunRange() * weapon.GetGunRange()));
 
-    auto a = vehicle.pos - pos;
+    auto a = vehicle.get().pos - pos;
     auto b = last_heading;
     auto angle_to_vehicle = acos(a.Dot(b) / (a.Mag() * b.Mag()));
     auto is_angle_ok = angle_to_vehicle < weapon.GetGunAngle();
@@ -446,29 +434,32 @@ bool Vehicle::GunSensor(const std::vector<Vehicle> &vehicles)
   return false;
 }
 
-void Vehicle::CheckForHits(const std::vector<Vehicle> &vehicles)
+void Vehicle::CheckForHits(std::vector<Vehicle> &vehicles)
 {
-  for (auto vehicle : vehicles)
+  if (m_guns_allowed)
   {
-    if (CheckEnemyClan(vehicle))
+    for (auto &vehicle : vehicles)
     {
-      if (vehicle.weapon.CheckHit(pos, size))
+      if (CheckEnemyClan(vehicle))
       {
-        health = 0.0;
+        if (vehicle.weapon.CheckHit(pos, size))
+        {
+          health = 0.0;
+        }
       }
     }
   }
 }
 
-Vehicle Vehicle::Reproduce(const VehicleStorage &vehicles)
+Vehicle &Vehicle::Reproduce(const VehicleStorage &vehicles)
 {
-  auto parent{*this};
-  if (!reproduction_ready)
+  auto &parent{*this};
+  if (!m_reproduction_ready)
     return parent;
 
   for (auto &vehicle : vehicles)
   {
-    if (!vehicle.get().reproduction_ready)
+    if (!vehicle.get().m_reproduction_ready)
     {
       continue;
     }
@@ -479,11 +470,11 @@ Vehicle Vehicle::Reproduce(const VehicleStorage &vehicles)
       if (reproduction_rand < reproduction_chance)
       {
         reproduction_time = 0.0;
-        reproduction_ready = false;
+        m_reproduction_ready = false;
 
         vehicle.get().reproduction_time = 0.0;
-        vehicle.get().reproduction_ready = false;
-        return vehicle.get();
+        vehicle.get().m_reproduction_ready = false;
+        return vehicle;
       }
     }
   }
@@ -565,7 +556,7 @@ void DrawVehicle(const Vehicle &vehicle, const IRenderer &renderer)
       break;
   }
 
-  if (vehicle.reproduction_ready)
+  if (vehicle.m_reproduction_ready)
   {
     color = IRenderer::Color::DARK_YELLOW;
   }
@@ -619,4 +610,89 @@ void Vehicle::Draw()
   //DrawVehicleVelocity(*this, *m_renderer);
 
   //DrawVehicleSensor(*this, *m_renderer);
+}
+
+void Vehicle::UpdateBehavior(const VehicleStorage &vehicles_in_range, double delta_t)
+{
+
+  auto found_target = FindClosestVehicle(vehicles_in_range);
+
+  if (!found_target.empty())
+  {
+    auto seek = Seek(found_target.front().get().pos);
+    auto arrive = Arrive(found_target.front().get().pos);
+    auto arrive_predicted = Arrive(found_target.front().get().PredictedPos());
+
+    applyForce(seek * 0, delta_t);
+    applyForce(arrive * 0, delta_t);
+    applyForce(arrive_predicted * 0, delta_t);
+  }
+
+  if (m_reproduction_ready)
+  {
+    auto found_mate = FindClosestMatingPartner(vehicles_in_range);
+
+    if (!found_mate.empty())
+    {
+      auto arrive = Arrive(found_mate.front().get().pos);
+
+      applyForce(arrive * 2.0, delta_t);
+    }
+  }
+
+  auto align = Align(vehicles_in_range);
+  auto flee = Flee(vehicles_in_range);
+  auto separate = Separate(vehicles_in_range);
+  auto cohesion = Cohesion(vehicles_in_range);
+  auto wander = Wander();
+
+  applyForce(align * 0.25, delta_t);
+  applyForce(flee * 0.10, delta_t);
+  applyForce(separate * 2.0, delta_t);
+  applyForce(cohesion * 0.1, delta_t);
+  applyForce(wander * 0.01, delta_t);
+}
+
+void Vehicle::UpdatePathFollowing(const std::vector<PathSegment> &path, double delta_t)
+{
+  auto follow_path = FollowPath(path);
+
+  applyForce(follow_path, delta_t);
+}
+
+std::optional<VehicleType> Vehicle::UpdateReproduction(const VehicleStorage &vehicles_in_range)
+{
+
+  auto parent = Reproduce(vehicles_in_range);
+
+  if (*this != parent)
+  {
+    auto type = vehicle_type;
+
+    if (type != parent.vehicle_type)
+    {
+      // if parents were different types, roll the new type
+      type = Vehicle::GetRandomType();
+    }
+
+    return type;
+  } else
+  {
+    return {};
+  }
+
+}
+
+void Vehicle::UpdateWeapons(const VehicleStorage &vehicles_in_range, double delta_t)
+{
+
+  if (m_guns_allowed)
+  {
+    if (GunSensor(vehicles_in_range))
+    {
+      weapon.FireGun(pos, last_heading, size);
+    }
+
+    weapon.Update(delta_t);
+  }
 }

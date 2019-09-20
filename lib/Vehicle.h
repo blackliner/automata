@@ -46,10 +46,10 @@ private:
 
   void InitVehicle();
 
-  IRenderer* m_renderer;
+  IRenderer *m_renderer;
 
 public:
-  explicit Vehicle(IRenderer* renderer) : m_renderer(renderer)
+  explicit Vehicle(IRenderer *renderer) : m_renderer(renderer)
   {
     InitVehicle();
   };
@@ -67,7 +67,7 @@ public:
 
   //  ---------------------config-------------------------
 
-  double max_velocity{200}; // pixel / second
+  double max_velocity{500}; // pixel / second
   double max_force{1000}; // velocity / second
   double size{20};
   double sensor_circle_radius{50.0};
@@ -83,6 +83,7 @@ public:
   Clan clan{};
   // -----------------Equipment----------------
 
+  bool m_guns_allowed{};
   Rifle weapon{};
 
   // -----------------reproduction--------------
@@ -90,7 +91,7 @@ public:
   double reproduction_chance{0.01};
   double reproduction_time{};
   double reproduction_waiting_time{5};
-  bool reproduction_ready{};
+  bool m_reproduction_ready{};
 
   // -----------------operators-----------------
 
@@ -108,11 +109,19 @@ public:
 
   void Draw();
 
+  void UpdateWeapons(const VehicleStorage &vehicles_in_range, double delta_t);
+
+  void UpdateBehavior(const VehicleStorage &vehicles_in_range, double delta_t);
+
+  void UpdatePathFollowing(const std::vector<PathSegment> &path, double delta_t);
+
+  std::optional<VehicleType> UpdateReproduction(const VehicleStorage &vehicles_in_range);
+
   void SetType(const VehicleType &type);
 
   static VehicleType GetRandomType();
 
-  void update(double delta_t = 1.0);
+  void UpdateKinematics(double delta_t = 1.0);
 
   Vector2D<VectorT> PredictedPos() const;
 
@@ -136,9 +145,9 @@ public:
 
   VehicleStorage ScanForVehiclesInRange(std::vector<Vehicle> &vehicles) const;
 
-  Vector2D<VectorT> Seek(const Vector2D<VectorT> target_pos) const;
+  Vector2D<VectorT> Seek(const Vector2D<VectorT> &target_pos) const;
 
-  Vector2D<VectorT> Arrive(const Vector2D<VectorT> target_pos) const;
+  Vector2D<VectorT> Arrive(const Vector2D<VectorT> &target_pos) const;
 
   Vector2D<VectorT> FollowPath(const std::vector<PathSegment> &path) const;
 
@@ -159,11 +168,11 @@ public:
 
   // void FireGun();
 
-  bool GunSensor(const std::vector<Vehicle> &vehicles);
+  bool GunSensor(const VehicleStorage &vehicles);
 
-  void CheckForHits(const std::vector<Vehicle> &vehicles);
+  void CheckForHits(std::vector<Vehicle> &vehicles);
 
-  Vehicle Reproduce(const VehicleStorage &vehicles);
+  Vehicle &Reproduce(const VehicleStorage &vehicles);
 };
 
 // move to cpp and remove inline

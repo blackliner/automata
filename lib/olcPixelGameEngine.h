@@ -87,7 +87,7 @@
 
 	Compiling in Linux
 	~~~~~~~~~~~~~~~~~~
-	You will need a modern C++ compiler, so update yours!
+	You will need a modern C++ compiler, so UpdateKinematics yours!
 	To compile use the command:
 
 	g++ -o YourProgName YourSource.cpp -lX11 -lGL -lpthread -lpng
