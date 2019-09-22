@@ -13,6 +13,7 @@ public:
     GREEN, BLUE, RED, DARK_YELLOW, WHITE
   };
 
+  virtual void Clear() const = 0;
   virtual void DrawLine(Vector2D<VectorT> start, Vector2D<VectorT> end, Color color) const = 0;
   virtual void DrawCircle(Vector2D<VectorT> position, double radius, Color color) const = 0;
 };

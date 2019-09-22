@@ -57,6 +57,11 @@ private:
     {
     };
 
+    void Clear() const override
+    {
+      m_engine.Clear(olc::BLACK);
+    }
+
     void DrawLine(Vector2D<VectorT> start, Vector2D<VectorT> end, IRenderer::Color color) const override
     {
       m_engine.DrawLine(static_cast<int>(start.x), static_cast<int>(start.y), static_cast<int>(end.x),
@@ -76,6 +81,8 @@ private:
 
   OLCRenderer renderer;
 
+  SDLut squared_distance_lookup;
+
   std::vector<Vehicle> vehicles; //nr1 is our mouse, nr 2 is roby
 //  std::vector<Vehicle> new_born;
   std::vector<std::unique_ptr<ICommand>> command_list{};
@@ -94,7 +101,7 @@ public:
 
   void WrapVehiclePositions(Vehicle &vehicle);
 
-  void AddNewVehicle(double x, double y, const VehicleType &type);
+  void AddNewVehicle(double x, double y, VehicleType type);
 
   void AddNewPathNode(VectorT x, VectorT y);
 
@@ -107,4 +114,6 @@ public:
   void HandleInput(float fElapsedTime);
 
   void HandleCommands();
+
+  void DrawPerformanceOSD(long duration_game_thread_ns, long duration_draw_thread_ns);
 };

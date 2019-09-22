@@ -4,71 +4,79 @@
 #include <cmath>
 #include <functional>
 #include <limits>
+#include <map>
 #include <memory>
 
 #include "PathSegment.h"
 #include "Perlin.h"
+#include "Renderer.h"
 #include "Vector2D.h"
 #include "Weapons.h"
-#include "Renderer.h"
 
 class Vehicle;
 
 using VehicleStorage = std::vector<std::reference_wrapper<Vehicle>>;
 
-enum class VehicleType : std::uint8_t
-{
-  TRIANGLE,
-  CIRCLE,
-  FLY,
-  BIRD
+enum class VehicleType : std::uint8_t { TRIANGLE, CIRCLE, FLY, BIRD };
+
+enum class SensorType : std::uint8_t { CIRCLE, ANGULAR, BOTH };
+
+enum class Clan : std::uint8_t { RED, BLUE };
+
+struct VehicleState {
+  Vector2D<VectorT> pos{};
+  Vector2D<VectorT> vel{};
+  Vector2D<VectorT> acc{};
 };
 
-enum class SensorType : std::uint8_t
-{
-  CIRCLE,
-  ANGULAR,
-  BOTH
-};
-
-enum class Clan : std::uint8_t
-{
-  RED,
-  BLUE
-};
+using SDLut = std::unordered_map<int, std::unordered_map<int, double>>;
 
 double Map(double value, double from_start, double from_end, double to_start, double to_end);
 
-class Vehicle
-{
+class Vehicle {
 private:
   static int current_id;
 
   void InitVehicle();
 
-  IRenderer *m_renderer;
+  VehicleState state[2];
+
+  int current_read_state{0};
+  int current_write_state{1};
+
+  const IRenderer *m_renderer;
+
+  SDLut *m_squared_distance_lookup{};
 
 public:
-  explicit Vehicle(IRenderer *renderer) : m_renderer(renderer)
-  {
+  explicit Vehicle(const IRenderer *renderer, SDLut *squared_distance_lookup)
+      : m_renderer(renderer), m_squared_distance_lookup(squared_distance_lookup) {
     InitVehicle();
   };
 
   int ID{};
 
-
   //  ---------------------state-------------------------
 
-  Vector2D<VectorT> pos{};
-  Vector2D<VectorT> vel{};
-  Vector2D<VectorT> acc{};
-  Vector2D<VectorT> last_acc{};        //for visu purpose
-  Vector2D<VectorT> last_heading{0.0, 1.0}; //to know its orientation if speed = 0; always unit vector
+  constexpr const VehicleState &ReadableState() const { return state[current_read_state]; }
+
+  constexpr VehicleState &WriteableState() { return state[current_write_state]; }
+
+  constexpr void SwapStates() {
+    current_read_state = current_write_state;
+    current_write_state = (current_write_state + 1) % 2;
+  }
+
+  //  Vector2D<VectorT> pos{};
+  //  Vector2D<VectorT> vel{};
+  //  Vector2D<VectorT> acc{};
+  //  Vector2D<VectorT> last_acc{};        //for visu purpose
+  Vector2D<VectorT> last_heading{0.0, 1.0}; // to know its orientation if speed = 0; always unit vector
 
   //  ---------------------config-------------------------
 
   double max_velocity{500}; // pixel / second
-  double max_force{1000}; // velocity / second
+  double max_force{1000};   // velocity / second
   double size{20};
   double sensor_circle_radius{50.0};
   double sensor_angle{0.4 * M_PI * 2.0};
@@ -95,19 +103,13 @@ public:
 
   // -----------------operators-----------------
 
-  bool operator==(const Vehicle &v)
-  {
-    return ID == v.ID;
-  };
+  bool operator==(const Vehicle &v) { return ID == v.ID; };
 
-  bool operator!=(const Vehicle &v)
-  {
-    return !(*this == v);
-  };
+  bool operator!=(const Vehicle &v) { return !(*this == v); };
 
   // --------------stuff --------------
 
-  void Draw();
+  void Draw() const;
 
   void UpdateWeapons(const VehicleStorage &vehicles_in_range, double delta_t);
 
@@ -132,6 +134,8 @@ public:
   VehicleStorage FindClosestMatingPartner(const VehicleStorage &vehicles);
 
   bool CheckEnemyClan(const Vehicle &vehicle) const;
+
+  double CalculateDistanceSquared(const Vehicle &vehicle) const;
 
   bool CheckInDistance(const Vehicle &vehicle, double distance) const;
 
@@ -161,14 +165,11 @@ public:
 
   Vector2D<VectorT> Wander() const;
 
-  bool IsAlive() const
-  {
-    return health > 0;
-  }
+  bool IsAlive() const { return health > 0; }
 
   // void FireGun();
 
-  bool GunSensor(const VehicleStorage &vehicles);
+  bool GunSensor(const VehicleStorage &vehicles) const;
 
   void CheckForHits(std::vector<Vehicle> &vehicles);
 
