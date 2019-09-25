@@ -131,7 +131,7 @@ public:
 
   VehicleStorage FindClosestVehicle(const VehicleStorage &vehicles);
 
-  VehicleStorage FindClosestMatingPartner(const VehicleStorage &vehicles);
+  std::optional<Vehicle> FindClosestMatingPartner(const VehicleStorage &vehicles);
 
   bool CheckEnemyClan(const Vehicle &vehicle) const;
 

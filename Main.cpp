@@ -7,7 +7,7 @@
 
 #include "Main.h"
 
-void Maze::WrapVehiclePositions(Vehicle &vehicle) {
+void Maze::WrapVehiclePositions(Vehicle& vehicle) {
   if (vehicle.WriteableState().pos.x < 0) {
     vehicle.WriteableState().pos.x += nWorldWidth;
   } else if (vehicle.WriteableState().pos.x > nWorldWidth) {
@@ -43,20 +43,11 @@ bool Maze::OnUserCreate() {
   AddNewVehicle(ScreenWidth() / 2, ScreenHeight() / 2, VehicleType::TRIANGLE);
   AddNewVehicle(ScreenWidth() / 2, ScreenHeight() / 2, VehicleType::TRIANGLE);
 
-  //  vehicles.emplace_back(Vehicle{&renderer});
-  //  vehicles.emplace_back(Vehicle{&renderer});
-  //
-  //  vehicles[vehicle_roby].WriteableState().pos.x = ScreenWidth() / 2.0;
-  //  vehicles[vehicle_roby].WriteableState().pos.y = ScreenHeight() / 2.0;
-  //
-  //  vehicles[vehicle_roby].SwapStates();
-
   return true;
 }
 
-void UpdateMouseVehicle(Vehicle &vehicle, double x, double y, double delta_t) {
-
-  auto &mouse = vehicle;
+void UpdateMouseVehicle(Vehicle& vehicle, double x, double y, double delta_t) {
+  auto& mouse = vehicle;
   auto tau = delta_t / (delta_t + 0.5);
   mouse.UpdateKinematics(delta_t);
 
@@ -65,12 +56,12 @@ void UpdateMouseVehicle(Vehicle &vehicle, double x, double y, double delta_t) {
                                (mouse.WriteableState().pos - mouse.ReadableState().pos) / (0.5 + delta_t);
 }
 
-long DrawScreen(const IRenderer *renderer, const std::vector<Vehicle> &vehicles, const std::vector<PathSegment> &path) {
+long DrawScreen(const IRenderer* renderer, const std::vector<Vehicle>& vehicles, const std::vector<PathSegment>& path) {
   auto begin = std::chrono::high_resolution_clock::now();
 
   renderer->Clear();
 
-  for (const auto &vehicle : vehicles) {
+  for (const auto& vehicle : vehicles) {
     vehicle.Draw();
   }
 
@@ -83,24 +74,24 @@ long DrawScreen(const IRenderer *renderer, const std::vector<Vehicle> &vehicles,
   return std::chrono::duration_cast<std::chrono::nanoseconds>(end - begin).count();
 }
 
-void SwapStates(std::vector<Vehicle> &vehicles) {
-  for (auto &vehicle : vehicles) {
+void SwapStates(std::vector<Vehicle>& vehicles) {
+  for (auto& vehicle : vehicles) {
     vehicle.SwapStates();
   }
 }
 
 bool Maze::OnUserUpdate(float fElapsedTime) {
-  if (GetKey(olc::SPACE).bPressed)
-    time_freeze = !time_freeze;
-  if (time_freeze)
-    fElapsedTime = 0.0;
+  if (GetKey(olc::SPACE).bPressed) time_freeze = !time_freeze;
+  if (time_freeze) fElapsedTime = 0.0;
 
   std::future<long> draw_future = std::async(DrawScreen, &renderer, vehicles, path);
 
+  auto begin = std::chrono::high_resolution_clock::now();
+
   // calculate vehicle distances
   squared_distance_lookup.clear();
-  for (const auto &veh_a : vehicles) {
-    for (const auto &veh_b : vehicles) {
+  for (const auto& veh_a : vehicles) {
+    for (const auto& veh_b : vehicles) {
       auto distance_squared = (veh_a.ReadableState().pos - veh_b.ReadableState().pos).MagSquared();
 
       squared_distance_lookup[veh_a.ID][veh_b.ID] = distance_squared;
@@ -108,8 +99,6 @@ bool Maze::OnUserUpdate(float fElapsedTime) {
   }
 
   //  std::thread draw_thread(DrawScreen, &renderer, vehicles, path);
-
-  auto begin = std::chrono::high_resolution_clock::now();
 
   HandleInput(fElapsedTime);
 
@@ -124,7 +113,6 @@ bool Maze::OnUserUpdate(float fElapsedTime) {
 
     // do calculations for all but the first vehicle (which is our mouse)
     for (auto vehicle = std::next(vehicles.begin()); vehicle != vehicles.end(); vehicle = std::next(vehicle)) {
-
       auto found_vehicles = vehicle->ScanForVehiclesInRange(vehicles);
 
       vehicle->UpdateWeapons(found_vehicles, fElapsedTime);
@@ -154,6 +142,15 @@ bool Maze::OnUserUpdate(float fElapsedTime) {
 
   HandleCommands();
 
+  QuadTree<Vehicle*> quad_tree{};
+  quad_tree.SetPoints({0, ScreenHeight()}, {ScreenWidth(), 0});
+  for (auto& vehicle : vehicles) {
+    Point p{static_cast<int>(vehicle.ReadableState().pos.x), static_cast<int>(vehicle.ReadableState().pos.y)};
+    quad_tree.AddNode(&vehicle, p);
+  }
+
+  DrawQuadTree(quad_tree);
+
   SwapStates(vehicles);
 
   DrawPerformanceOSD(duration_game_thread, duration_draw_thread);
@@ -170,8 +167,7 @@ void Maze::DrawPerformanceOSD(long duration_game_thread_ns, long duration_draw_t
 
 void Maze::HandleCommands() {
   if (!command_list.empty()) {
-
-    for (const auto &command : command_list) {
+    for (const auto& command : command_list) {
       command->Execute();
     }
 
@@ -180,16 +176,18 @@ void Maze::HandleCommands() {
 }
 
 class AddNewVehicleCommand : public ICommand {
-private:
-  const IRenderer *m_renderer;
-  SDLut *m_squared_distance_lookup;
+ private:
+  const IRenderer* m_renderer;
+  SDLut* m_squared_distance_lookup;
   Vector2D<VectorT> m_position;
   VehicleType m_type;
-  std::vector<Vehicle> &m_vehicles;
+  std::vector<Vehicle>& m_vehicles;
 
   int m_ID{};
 
-  void AddNewVehicle(const IRenderer *renderer, SDLut *squared_distance_lookup, Vector2D<VectorT> position,
+  void AddNewVehicle(const IRenderer* renderer,
+                     SDLut* squared_distance_lookup,
+                     Vector2D<VectorT> position,
                      VehicleType type) {
     Vehicle new_vehicle{renderer, squared_distance_lookup};
     new_vehicle.WriteableState().pos = position;
@@ -201,13 +199,22 @@ private:
     m_ID = new_vehicle.ID;
   }
 
-public:
-  AddNewVehicleCommand(const IRenderer *renderer, SDLut *squared_distance_lookup, Vector2D<VectorT> position,
-                       VehicleType type, std::vector<Vehicle> &m_vehicles)
-      : m_renderer(renderer), m_squared_distance_lookup(squared_distance_lookup), m_position(position), m_type(type),
-        m_vehicles(m_vehicles) {}
+ public:
+  AddNewVehicleCommand(const IRenderer* renderer,
+                       SDLut* squared_distance_lookup,
+                       Vector2D<VectorT> position,
+                       VehicleType type,
+                       std::vector<Vehicle>& m_vehicles)
+      : m_renderer(renderer),
+        m_squared_distance_lookup(squared_distance_lookup),
+        m_position(position),
+        m_type(type),
+        m_vehicles(m_vehicles) {
+  }
 
-  void Execute() override { AddNewVehicle(m_renderer, m_squared_distance_lookup, m_position, m_type); }
+  void Execute() override {
+    AddNewVehicle(m_renderer, m_squared_distance_lookup, m_position, m_type);
+  }
 
   void Undo() override {
     // remove vehicle with ID == m_ID;
@@ -220,7 +227,6 @@ void Maze::AddNewVehicle(double x, double y, VehicleType type) {
 }
 
 void Maze::HandleInput(float fElapsedTime) {
-
   if (GetMouse(0).bPressed) {
     t_last_pressed = 0.0;
     AddNewVehicle((double)GetMouseX(), (double)GetMouseY(), Vehicle::GetRandomType());
@@ -241,7 +247,7 @@ void Maze::HandleInput(float fElapsedTime) {
 }
 
 void Maze::RemoveDeadVehicles() {
-  auto end = std::remove_if(vehicles.begin(), vehicles.end(), [](const Vehicle &v) { return !v.IsAlive(); });
+  auto end = std::remove_if(vehicles.begin(), vehicles.end(), [](const Vehicle& v) { return !v.IsAlive(); });
 
   vehicles.erase(end, vehicles.end());
 }

@@ -31,6 +31,7 @@ cc_binary(
     copts = ["-Ilib"],
     deps = [
         "vehicle",
+        "quad_tree",
         "olc_pixel_game_engine",
         #"//lib:vector2d",
     ],
@@ -39,6 +40,14 @@ cc_binary(
 cc_library(
     name = "renderer",
     srcs = ["lib/Renderer.h"],
+    visibility = ["//visibility:public"],
+)
+
+cc_library(
+    name = "quad_tree",
+    srcs = ["lib/quad_tree.h"],
+    visibility = ["//visibility:public"],
+    deps = ["vector2d"],
 )
 
 cc_library(

@@ -113,29 +113,22 @@ VehicleStorage Vehicle::FindClosestVehicle(const VehicleStorage &vehicles) {
   return ret_value;
 }
 
-// TODO change to optional!!
-// TODO change to use calcDistanceSquared instead std::min_element
-VehicleStorage Vehicle::FindClosestMatingPartner(const VehicleStorage &vehicles) {
-  VehicleStorage ret_value;
 
-  if (!vehicles.empty()) {
-    auto closest = std::min_element(vehicles.begin(), vehicles.end(), [this](Vehicle a, Vehicle b) {
-      auto dist_a = (a.ReadableState().pos - ReadableState().pos).MagSquared();
-      auto dist_b = (b.ReadableState().pos - ReadableState().pos).MagSquared();
-      return dist_a < dist_b;
-    });
+std::optional<Vehicle> Vehicle::FindClosestMatingPartner(const VehicleStorage &vehicles) {
 
-    if (closest != vehicles.end()) {
-      for (auto vehicle : vehicles) {
-        if (vehicle.get().m_reproduction_ready) {
-          ret_value.push_back(vehicle);
-          break;
-        }
-      }
+  auto min_distance_squared = std::numeric_limits<double>::max();
+
+  std::optional<Vehicle> ret_val{};
+
+  for (const auto &vehicle : vehicles) {
+    auto distance_squared = CalculateDistanceSquared(vehicle);
+
+    if (distance_squared < min_distance_squared && vehicle.get().m_reproduction_ready) {
+      ret_val = vehicle;
     }
   }
 
-  return ret_value;
+  return ret_val;
 }
 
 bool Vehicle::CheckEnemyClan(const Vehicle &vehicle) const { return clan != vehicle.clan; }
@@ -145,7 +138,7 @@ double Vehicle::CalculateDistanceSquared(const Vehicle &vehicle) const {
     return (vehicle.ReadableState().pos - ReadableState().pos).MagSquared();
   } else {
     return (*m_squared_distance_lookup)[ID][vehicle.ID];
-//    return m_squared_distance_lookup->at(ID).at(vehicle.ID);
+    //    return m_squared_distance_lookup->at(ID).at(vehicle.ID);
   }
 }
 
@@ -547,8 +540,8 @@ void Vehicle::UpdateBehavior(const VehicleStorage &vehicles_in_range, double del
   if (m_reproduction_ready) {
     auto found_mate = FindClosestMatingPartner(vehicles_in_range);
 
-    if (!found_mate.empty()) {
-      auto arrive = Arrive(found_mate.front().get().ReadableState().pos);
+    if (found_mate) {
+      auto arrive = Arrive(found_mate->ReadableState().pos);
 
       applyForce(arrive * 2.0, delta_t);
     }

@@ -7,6 +7,7 @@
 #include "PathSegment.h"
 #include "Vector2D.h"
 #include "Vehicle.h"
+#include "quad_tree.h"
 
 constexpr int fBlockWidth = 1;
 constexpr int nWorldWidth = 210 * 10;
@@ -14,10 +15,8 @@ constexpr int nWorldHeight = 90 * 10;
 constexpr int nDisplayWidth = nWorldWidth * fBlockWidth;
 constexpr int nDisplayHeight = nWorldHeight * fBlockWidth;
 
-olc::Pixel ColorConverter(IRenderer::Color color)
-{
-  switch (color)
-  {
+olc::Pixel ColorConverter(IRenderer::Color color) {
+  switch (color) {
     case IRenderer::Color::GREEN:
       return olc::GREEN;
     case IRenderer::Color::BLUE:
@@ -33,9 +32,8 @@ olc::Pixel ColorConverter(IRenderer::Color color)
   throw std::runtime_error("Unhandled enum type.");
 }
 
-class ICommand
-{
-public:
+class ICommand {
+ public:
   virtual ~ICommand() = default;
 
   virtual void Execute() = 0;
@@ -43,38 +41,29 @@ public:
   virtual void Undo() = 0;
 };
 
-class Maze : public olc::PixelGameEngine
-{
-private:
+class Maze : public olc::PixelGameEngine {
+ private:
+  class OLCRenderer : public IRenderer {
+   private:
+    olc::PixelGameEngine& m_engine;
 
-  class OLCRenderer : public IRenderer
-  {
-  private:
-    olc::PixelGameEngine &m_engine;
+   public:
+    explicit OLCRenderer(olc::PixelGameEngine& engine) : m_engine(engine){};
 
-  public:
-    explicit OLCRenderer(olc::PixelGameEngine &engine) : m_engine(engine)
-    {
-    };
-
-    void Clear() const override
-    {
+    void Clear() const override {
       m_engine.Clear(olc::BLACK);
     }
 
-    void DrawLine(Vector2D<VectorT> start, Vector2D<VectorT> end, IRenderer::Color color) const override
-    {
+    void DrawLine(Vector2D<VectorT> start, Vector2D<VectorT> end, IRenderer::Color color) const override {
       m_engine.DrawLine(static_cast<int>(start.x), static_cast<int>(start.y), static_cast<int>(end.x),
                         static_cast<int>(end.y), ColorConverter(color));
     };
 
-    void DrawCircle(Vector2D<VectorT> position, double radius, Color color) const override
-    {
+    void DrawCircle(Vector2D<VectorT> position, double radius, Color color) const override {
       m_engine.DrawCircle(static_cast<int>(position.x), static_cast<int>(position.y), static_cast<int>(radius),
                           ColorConverter(color));
     }
   };
-
 
   const int vehicle_mouse = 0;
   const int vehicle_roby = 1;
@@ -83,8 +72,8 @@ private:
 
   SDLut squared_distance_lookup;
 
-  std::vector<Vehicle> vehicles; //nr1 is our mouse, nr 2 is roby
-//  std::vector<Vehicle> new_born;
+  std::vector<Vehicle> vehicles;  // nr1 is our mouse, nr 2 is roby
+  //  std::vector<Vehicle> new_born;
   std::vector<std::unique_ptr<ICommand>> command_list{};
   std::vector<PathSegment> path;
 
@@ -93,13 +82,12 @@ private:
   double t_last_pressed{};
   bool time_freeze{};
 
-public:
-  Maze() : renderer(OLCRenderer(*this))
-  {
+ public:
+  Maze() : renderer(OLCRenderer(*this)) {
     sAppName = "Automata";
   }
 
-  void WrapVehiclePositions(Vehicle &vehicle);
+  void WrapVehiclePositions(Vehicle& vehicle);
 
   void AddNewVehicle(double x, double y, VehicleType type);
 
@@ -116,4 +104,23 @@ public:
   void HandleCommands();
 
   void DrawPerformanceOSD(long duration_game_thread_ns, long duration_draw_thread_ns);
+
+  template <typename T>
+  void DrawQuadTree(const QuadTree<T>& quad_tree) {
+    DrawRect(quad_tree.m_top_left.x, quad_tree.m_top_left.y, quad_tree.m_bot_right.x - quad_tree.m_top_left.x,
+             quad_tree.m_bot_right.y - quad_tree.m_top_left.y);
+
+    if (quad_tree.m_child_sw) {
+      DrawQuadTree(*quad_tree.m_child_sw);
+    }
+    if (quad_tree.m_child_se) {
+      DrawQuadTree(*quad_tree.m_child_se);
+    }
+    if (quad_tree.m_child_nw) {
+      DrawQuadTree(*quad_tree.m_child_nw);
+    }
+    if (quad_tree.m_child_ne) {
+      DrawQuadTree(*quad_tree.m_child_ne);
+    }
+  }
 };
