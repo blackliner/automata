@@ -34,7 +34,7 @@ using SDLut = std::unordered_map<int, std::unordered_map<int, double>>;
 double Map(double value, double from_start, double from_end, double to_start, double to_end);
 
 class Vehicle {
-private:
+ private:
   static int current_id;
 
   void InitVehicle();
@@ -44,12 +44,12 @@ private:
   int current_read_state{0};
   int current_write_state{1};
 
-  const IRenderer *m_renderer;
+  const IRenderer* m_renderer;
 
-  SDLut *m_squared_distance_lookup{};
+  SDLut* m_squared_distance_lookup{};
 
-public:
-  explicit Vehicle(const IRenderer *renderer, SDLut *squared_distance_lookup)
+ public:
+  explicit Vehicle(const IRenderer* renderer, SDLut* squared_distance_lookup)
       : m_renderer(renderer), m_squared_distance_lookup(squared_distance_lookup) {
     InitVehicle();
   };
@@ -58,9 +58,13 @@ public:
 
   //  ---------------------state-------------------------
 
-  constexpr const VehicleState &ReadableState() const { return state[current_read_state]; }
+  constexpr const VehicleState& ReadableState() const {
+    return state[current_read_state];
+  }
 
-  constexpr VehicleState &WriteableState() { return state[current_write_state]; }
+  constexpr VehicleState& WriteableState() {
+    return state[current_write_state];
+  }
 
   constexpr void SwapStates() {
     current_read_state = current_write_state;
@@ -71,12 +75,12 @@ public:
   //  Vector2D<VectorT> vel{};
   //  Vector2D<VectorT> acc{};
   //  Vector2D<VectorT> last_acc{};        //for visu purpose
-  Vector2D<VectorT> last_heading{0.0, 1.0}; // to know its orientation if speed = 0; always unit vector
+  Vector2D<VectorT> last_heading{0.0, 1.0};  // to know its orientation if speed = 0; always unit vector
 
   //  ---------------------config-------------------------
 
-  double max_velocity{500}; // pixel / second
-  double max_force{1000};   // velocity / second
+  double max_velocity{500};  // pixel / second
+  double max_force{1000};    // velocity / second
   double size{20};
   double sensor_circle_radius{50.0};
   double sensor_angle{0.4 * M_PI * 2.0};
@@ -103,23 +107,27 @@ public:
 
   // -----------------operators-----------------
 
-  bool operator==(const Vehicle &v) { return ID == v.ID; };
+  bool operator==(const Vehicle& v) {
+    return ID == v.ID;
+  };
 
-  bool operator!=(const Vehicle &v) { return !(*this == v); };
+  bool operator!=(const Vehicle& v) {
+    return !(*this == v);
+  };
 
   // --------------stuff --------------
 
   void Draw() const;
 
-  void UpdateWeapons(const VehicleStorage &vehicles_in_range, double delta_t);
+  void UpdateWeapons(const VehicleStorage& vehicles_in_range, double delta_t);
 
-  void UpdateBehavior(const VehicleStorage &vehicles_in_range, double delta_t);
+  void UpdateBehavior(const VehicleStorage& vehicles_in_range, double delta_t);
 
-  void UpdatePathFollowing(const std::vector<PathSegment> &path, double delta_t);
+  void UpdatePathFollowing(const std::vector<PathSegment>& path, double delta_t);
 
-  std::optional<VehicleType> UpdateReproduction(const VehicleStorage &vehicles_in_range);
+  std::optional<VehicleType> UpdateReproduction(const VehicleStorage& vehicles_in_range);
 
-  void SetType(const VehicleType &type);
+  void SetType(const VehicleType& type);
 
   static VehicleType GetRandomType();
 
@@ -129,51 +137,53 @@ public:
 
   void applyForce(Vector2D<VectorT> force, double delta_t = 1.0);
 
-  VehicleStorage FindClosestVehicle(const VehicleStorage &vehicles);
+  VehicleStorage FindClosestVehicle(const VehicleStorage& vehicles);
 
-  std::optional<Vehicle> FindClosestMatingPartner(const VehicleStorage &vehicles);
+  std::optional<Vehicle> FindClosestMatingPartner(const VehicleStorage& vehicles);
 
-  bool CheckEnemyClan(const Vehicle &vehicle) const;
+  bool CheckEnemyClan(const Vehicle& vehicle) const;
 
-  double CalculateDistanceSquared(const Vehicle &vehicle) const;
+  double CalculateDistanceSquared(const Vehicle& vehicle) const;
 
-  bool CheckInDistance(const Vehicle &vehicle, double distance) const;
+  bool CheckInDistance(const Vehicle& vehicle, double distance) const;
 
-  bool CheckInCone(const Vehicle &vehicle, double angle) const;
+  bool CheckInCone(const Vehicle& vehicle, double angle) const;
 
-  VehicleStorage CircularSensor(std::vector<Vehicle> &vehicles) const;
+  VehicleStorage CircularSensor(std::vector<Vehicle>& vehicles) const;
 
-  VehicleStorage AngularSensor(std::vector<Vehicle> &vehicles) const;
+  VehicleStorage AngularSensor(std::vector<Vehicle>& vehicles) const;
 
-  VehicleStorage BothSensor(std::vector<Vehicle> &vehicles) const;
+  VehicleStorage BothSensor(std::vector<Vehicle>& vehicles) const;
 
-  VehicleStorage ScanForVehiclesInRange(std::vector<Vehicle> &vehicles) const;
+  VehicleStorage ScanForVehiclesInRange(std::vector<Vehicle>& vehicles) const;
 
-  Vector2D<VectorT> Seek(const Vector2D<VectorT> &target_pos) const;
+  Vector2D<VectorT> Seek(const Vector2D<VectorT>& target_pos) const;
 
-  Vector2D<VectorT> Arrive(const Vector2D<VectorT> &target_pos) const;
+  Vector2D<VectorT> Arrive(const Vector2D<VectorT>& target_pos) const;
 
-  Vector2D<VectorT> FollowPath(const std::vector<PathSegment> &path) const;
+  Vector2D<VectorT> FollowPath(const std::vector<PathSegment>& path) const;
 
-  Vector2D<VectorT> Align(const VehicleStorage &vehicles) const;
+  Vector2D<VectorT> Align(const VehicleStorage& vehicles) const;
 
-  Vector2D<VectorT> Flee(const VehicleStorage &vehicles) const;
+  Vector2D<VectorT> Flee(const VehicleStorage& vehicles) const;
 
-  Vector2D<VectorT> Separate(const VehicleStorage &vehicles) const;
+  Vector2D<VectorT> Separate(const VehicleStorage& vehicles) const;
 
-  Vector2D<VectorT> Cohesion(const VehicleStorage &vehicles) const;
+  Vector2D<VectorT> Cohesion(const VehicleStorage& vehicles) const;
 
   Vector2D<VectorT> Wander() const;
 
-  bool IsAlive() const { return health > 0; }
+  bool IsAlive() const {
+    return health > 0;
+  }
 
   // void FireGun();
 
-  bool GunSensor(const VehicleStorage &vehicles) const;
+  bool GunSensor(const VehicleStorage& vehicles) const;
 
-  void CheckForHits(std::vector<Vehicle> &vehicles);
+  void CheckForHits(std::vector<Vehicle>& vehicles);
 
-  Vehicle &Reproduce(const VehicleStorage &vehicles);
+  Vehicle& Reproduce(const VehicleStorage& vehicles);
 };
 
 // move to cpp and remove inline

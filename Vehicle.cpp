@@ -1,14 +1,10 @@
 #include "Vehicle.h"
 
 double Map(double value, double from_start, double from_end, double to_start, double to_end) {
-  if (value < from_start)
-    return to_start;
-  if (value > from_end)
-    return to_end;
-  if (to_start == to_end)
-    return to_start; // only if its 0.0!
-  if (from_start == from_end)
-    return NAN;
+  if (value < from_start) return to_start;
+  if (value > from_end) return to_end;
+  if (to_start == to_end) return to_start;  // only if its 0.0!
+  if (from_start == from_end) return NAN;
 
   return to_start + (value - from_start) / (from_end - from_start) * (to_end - to_start);
 }
@@ -24,43 +20,40 @@ void Vehicle::InitVehicle() {
   SetType(GetRandomType());
 }
 
-void Vehicle::SetType(const VehicleType &type) {
+void Vehicle::SetType(const VehicleType& type) {
   switch (type) {
-  case VehicleType::TRIANGLE:
-    vehicle_type = VehicleType::TRIANGLE;
-    sensor_type = SensorType::BOTH;
-    break;
-  case VehicleType::CIRCLE:
-    vehicle_type = VehicleType::CIRCLE;
-    sensor_type = SensorType::CIRCLE;
-    sensor_circle_radius = 200;
-    break;
-  case VehicleType::FLY:
-    vehicle_type = VehicleType::CIRCLE;
-    sensor_type = SensorType::CIRCLE;
-    sensor_circle_radius = 25;
-    size = 5;
-    max_force *= 10;
-    break;
-  case VehicleType::BIRD:
-    vehicle_type = VehicleType::TRIANGLE;
-    sensor_type = SensorType::BOTH;
-    sensor_circle_radius = 100;
-    sensor_cone_radius = 500;
-    size = 25;
-    break;
+    case VehicleType::TRIANGLE:
+      vehicle_type = VehicleType::TRIANGLE;
+      sensor_type = SensorType::BOTH;
+      break;
+    case VehicleType::CIRCLE:
+      vehicle_type = VehicleType::CIRCLE;
+      sensor_type = SensorType::CIRCLE;
+      sensor_circle_radius = 200;
+      break;
+    case VehicleType::FLY:
+      vehicle_type = VehicleType::CIRCLE;
+      sensor_type = SensorType::CIRCLE;
+      sensor_circle_radius = 25;
+      size = 5;
+      max_force *= 10;
+      break;
+    case VehicleType::BIRD:
+      vehicle_type = VehicleType::TRIANGLE;
+      sensor_type = SensorType::BOTH;
+      sensor_circle_radius = 100;
+      sensor_cone_radius = 500;
+      size = 25;
+      break;
   }
 }
 
 VehicleType Vehicle::GetRandomType() {
   double rand_val{4.0 * rand() / RAND_MAX};
 
-  if (rand_val < 1)
-    return VehicleType::CIRCLE;
-  if (rand_val < 2)
-    return VehicleType::TRIANGLE;
-  if (rand_val < 3)
-    return VehicleType::FLY;
+  if (rand_val < 1) return VehicleType::CIRCLE;
+  if (rand_val < 2) return VehicleType::TRIANGLE;
+  if (rand_val < 3) return VehicleType::FLY;
 
   return VehicleType::BIRD;
 }
@@ -78,8 +71,7 @@ void Vehicle::UpdateKinematics(double delta_t) {
     last_heading.Normalize();
   }
 
-  if (health > 0.0)
-    health -= delta_t;
+  if (health > 0.0) health -= delta_t;
 
   if (reproduction_time < reproduction_waiting_time) {
     reproduction_time += delta_t;
@@ -88,18 +80,19 @@ void Vehicle::UpdateKinematics(double delta_t) {
   }
 }
 
-Vector2D<VectorT> Vehicle::PredictedPos() const { return ReadableState().pos + ReadableState().vel * 0.2; }
-
-void Vehicle::applyForce(Vector2D<VectorT> force, double delta_t) {
-  if (delta_t > 0.0)
-    WriteableState().acc = WriteableState().acc + force; // / delta_t;
+Vector2D<VectorT> Vehicle::PredictedPos() const {
+  return ReadableState().pos + ReadableState().vel * 0.2;
 }
 
-VehicleStorage Vehicle::FindClosestVehicle(const VehicleStorage &vehicles) {
+void Vehicle::applyForce(Vector2D<VectorT> force, double delta_t) {
+  if (delta_t > 0.0) WriteableState().acc = WriteableState().acc + force;  // / delta_t;
+}
+
+VehicleStorage Vehicle::FindClosestVehicle(const VehicleStorage& vehicles) {
   VehicleStorage ret_value;
 
   if (!vehicles.empty()) {
-    auto closest = std::min_element(vehicles.begin(), vehicles.end(), [this](const Vehicle &a, const Vehicle &b) {
+    auto closest = std::min_element(vehicles.begin(), vehicles.end(), [this](const Vehicle& a, const Vehicle& b) {
       auto dist_a = (a.ReadableState().pos - ReadableState().pos).MagSquared();
       auto dist_b = (b.ReadableState().pos - ReadableState().pos).MagSquared();
       return dist_a < dist_b;
@@ -113,14 +106,12 @@ VehicleStorage Vehicle::FindClosestVehicle(const VehicleStorage &vehicles) {
   return ret_value;
 }
 
-
-std::optional<Vehicle> Vehicle::FindClosestMatingPartner(const VehicleStorage &vehicles) {
-
+std::optional<Vehicle> Vehicle::FindClosestMatingPartner(const VehicleStorage& vehicles) {
   auto min_distance_squared = std::numeric_limits<double>::max();
 
   std::optional<Vehicle> ret_val{};
 
-  for (const auto &vehicle : vehicles) {
+  for (const auto& vehicle : vehicles) {
     auto distance_squared = CalculateDistanceSquared(vehicle);
 
     if (distance_squared < min_distance_squared && vehicle.get().m_reproduction_ready) {
@@ -131,9 +122,11 @@ std::optional<Vehicle> Vehicle::FindClosestMatingPartner(const VehicleStorage &v
   return ret_val;
 }
 
-bool Vehicle::CheckEnemyClan(const Vehicle &vehicle) const { return clan != vehicle.clan; }
+bool Vehicle::CheckEnemyClan(const Vehicle& vehicle) const {
+  return clan != vehicle.clan;
+}
 
-double Vehicle::CalculateDistanceSquared(const Vehicle &vehicle) const {
+double Vehicle::CalculateDistanceSquared(const Vehicle& vehicle) const {
   if (false) {
     return (vehicle.ReadableState().pos - ReadableState().pos).MagSquared();
   } else {
@@ -142,34 +135,33 @@ double Vehicle::CalculateDistanceSquared(const Vehicle &vehicle) const {
   }
 }
 
-bool Vehicle::CheckInDistance(const Vehicle &vehicle, double distance) const {
+bool Vehicle::CheckInDistance(const Vehicle& vehicle, double distance) const {
   auto distance_squared = CalculateDistanceSquared(vehicle);
   auto is_circle_distance_ok = (distance_squared > 0) && (distance_squared < (distance * distance));
   return is_circle_distance_ok;
 }
 
-bool Vehicle::CheckInCone(const Vehicle &vehicle, double angle) const {
+bool Vehicle::CheckInCone(const Vehicle& vehicle, double angle) const {
   auto a = vehicle.ReadableState().pos - ReadableState().pos;
   auto b = last_heading;
   auto angle_to_vehicle = acos(a.Dot(b) / (a.Mag() * b.Mag()));
   return angle_to_vehicle < angle;
 }
 
-VehicleStorage Vehicle::CircularSensor(std::vector<Vehicle> &vehicles) const {
+VehicleStorage Vehicle::CircularSensor(std::vector<Vehicle>& vehicles) const {
   VehicleStorage ret_value;
 
-  for (auto &vehicle : vehicles) {
-    if (CheckInDistance(vehicle, sensor_circle_radius))
-      ret_value.push_back(vehicle);
+  for (auto& vehicle : vehicles) {
+    if (CheckInDistance(vehicle, sensor_circle_radius)) ret_value.push_back(vehicle);
   }
 
   return ret_value;
 }
 
-VehicleStorage Vehicle::AngularSensor(std::vector<Vehicle> &vehicles) const {
+VehicleStorage Vehicle::AngularSensor(std::vector<Vehicle>& vehicles) const {
   VehicleStorage ret_value;
 
-  for (auto &vehicle : vehicles) {
+  for (auto& vehicle : vehicles) {
     if (CheckInDistance(vehicle, sensor_cone_radius) && CheckInCone(vehicle, sensor_angle))
       ret_value.push_back(std::reference_wrapper(vehicle));
   }
@@ -177,10 +169,10 @@ VehicleStorage Vehicle::AngularSensor(std::vector<Vehicle> &vehicles) const {
   return ret_value;
 }
 
-VehicleStorage Vehicle::BothSensor(std::vector<Vehicle> &vehicles) const {
+VehicleStorage Vehicle::BothSensor(std::vector<Vehicle>& vehicles) const {
   VehicleStorage ret_value;
 
-  for (auto &vehicle : vehicles) {
+  for (auto& vehicle : vehicles) {
     if (CheckInDistance(vehicle, sensor_circle_radius) ||
         (CheckInDistance(vehicle, sensor_cone_radius) && CheckInCone(vehicle, sensor_angle)))
       ret_value.push_back(std::reference_wrapper(vehicle));
@@ -189,20 +181,20 @@ VehicleStorage Vehicle::BothSensor(std::vector<Vehicle> &vehicles) const {
   return ret_value;
 }
 
-VehicleStorage Vehicle::ScanForVehiclesInRange(std::vector<Vehicle> &vehicles) const {
+VehicleStorage Vehicle::ScanForVehiclesInRange(std::vector<Vehicle>& vehicles) const {
   switch (sensor_type) {
-  case SensorType::CIRCLE:
-    return CircularSensor(vehicles);
-  case SensorType::ANGULAR:
-    return AngularSensor(vehicles);
-  case SensorType::BOTH:
-    return BothSensor(vehicles);
+    case SensorType::CIRCLE:
+      return CircularSensor(vehicles);
+    case SensorType::ANGULAR:
+      return AngularSensor(vehicles);
+    case SensorType::BOTH:
+      return BothSensor(vehicles);
   }
 
   throw std::runtime_error("Unknown enum value.");
 }
 
-Vector2D<VectorT> Vehicle::Seek(const Vector2D<VectorT> &target_pos) const {
+Vector2D<VectorT> Vehicle::Seek(const Vector2D<VectorT>& target_pos) const {
   auto desired = (target_pos - ReadableState().pos);
   desired.SetMag(max_velocity);
 
@@ -212,7 +204,7 @@ Vector2D<VectorT> Vehicle::Seek(const Vector2D<VectorT> &target_pos) const {
   return steer;
 }
 
-Vector2D<VectorT> Vehicle::Arrive(const Vector2D<VectorT> &target_pos) const {
+Vector2D<VectorT> Vehicle::Arrive(const Vector2D<VectorT>& target_pos) const {
   auto desired = (target_pos - ReadableState().pos);
   auto distance = desired.Mag();
 
@@ -226,7 +218,7 @@ Vector2D<VectorT> Vehicle::Arrive(const Vector2D<VectorT> &target_pos) const {
   return steer;
 }
 
-Vector2D<VectorT> Vehicle::FollowPath(const std::vector<PathSegment> &path) const {
+Vector2D<VectorT> Vehicle::FollowPath(const std::vector<PathSegment>& path) const {
   Vector2D<VectorT> steer{}, target{}, normal_point{};
   auto min_distance_squared = std::numeric_limits<double>::max();
 
@@ -259,7 +251,7 @@ Vector2D<VectorT> Vehicle::FollowPath(const std::vector<PathSegment> &path) cons
   return steer;
 }
 
-Vector2D<VectorT> Vehicle::Align(const VehicleStorage &vehicles) const {
+Vector2D<VectorT> Vehicle::Align(const VehicleStorage& vehicles) const {
   Vector2D<VectorT> desired{}, steer{};
 
   for (auto vehicle : vehicles) {
@@ -277,7 +269,7 @@ Vector2D<VectorT> Vehicle::Align(const VehicleStorage &vehicles) const {
   return steer;
 }
 
-Vector2D<VectorT> Vehicle::Flee(const VehicleStorage &vehicles) const {
+Vector2D<VectorT> Vehicle::Flee(const VehicleStorage& vehicles) const {
   Vector2D<VectorT> desired{};
 
   for (auto vehicle : vehicles) {
@@ -293,7 +285,7 @@ Vector2D<VectorT> Vehicle::Flee(const VehicleStorage &vehicles) const {
   return steer;
 }
 
-Vector2D<VectorT> Vehicle::Separate(const VehicleStorage &vehicles) const {
+Vector2D<VectorT> Vehicle::Separate(const VehicleStorage& vehicles) const {
   Vector2D<VectorT> desired{}, steer{};
   int count{};
 
@@ -319,7 +311,7 @@ Vector2D<VectorT> Vehicle::Separate(const VehicleStorage &vehicles) const {
   return steer;
 }
 
-Vector2D<VectorT> Vehicle::Cohesion(const VehicleStorage &vehicles) const {
+Vector2D<VectorT> Vehicle::Cohesion(const VehicleStorage& vehicles) const {
   Vector2D<VectorT> desired_position{}, steer{};
 
   for (auto vehicle : vehicles) {
@@ -347,8 +339,8 @@ Vector2D<VectorT> Vehicle::Wander() const {
   return steer;
 }
 
-bool Vehicle::GunSensor(const VehicleStorage &vehicles) const {
-  for (const auto &vehicle : vehicles) {
+bool Vehicle::GunSensor(const VehicleStorage& vehicles) const {
+  for (const auto& vehicle : vehicles) {
     //    auto distance_squared = CalculateDistanceSquared(vehicle);
     //    auto is_cone_distance_ok =
     //        (distance_squared > 0) && (distance_squared < (weapon.GetGunRange() * weapon.GetGunRange()));
@@ -362,16 +354,15 @@ bool Vehicle::GunSensor(const VehicleStorage &vehicles) const {
 
     auto is_enemy_clan = CheckEnemyClan(vehicle);
 
-    if (is_cone_distance_ok && is_angle_ok && is_enemy_clan)
-      return true;
+    if (is_cone_distance_ok && is_angle_ok && is_enemy_clan) return true;
   }
 
   return false;
 }
 
-void Vehicle::CheckForHits(std::vector<Vehicle> &vehicles) {
+void Vehicle::CheckForHits(std::vector<Vehicle>& vehicles) {
   if (m_guns_allowed) {
-    for (auto &vehicle : vehicles) {
+    for (auto& vehicle : vehicles) {
       if (CheckEnemyClan(vehicle)) {
         if (vehicle.weapon.CheckHit(ReadableState().pos, size)) {
           health = 0.0;
@@ -381,12 +372,11 @@ void Vehicle::CheckForHits(std::vector<Vehicle> &vehicles) {
   }
 }
 
-Vehicle &Vehicle::Reproduce(const VehicleStorage &vehicles) {
-  auto &parent{*this};
-  if (!m_reproduction_ready)
-    return parent;
+Vehicle& Vehicle::Reproduce(const VehicleStorage& vehicles) {
+  auto& parent{*this};
+  if (!m_reproduction_ready) return parent;
 
-  for (auto &vehicle : vehicles) {
+  for (auto& vehicle : vehicles) {
     if (!vehicle.get().m_reproduction_ready) {
       continue;
     }
@@ -408,32 +398,34 @@ Vehicle &Vehicle::Reproduce(const VehicleStorage &vehicles) {
 }
 
 template <typename T>
-void DrawArrow(const Vector2D<T> start, const Vector2D<T> end, const IRenderer::Color color,
-               const IRenderer &renderer) {
-  renderer.DrawLine(start, end, color); // shaft
+void DrawArrow(const Vector2D<T> start,
+               const Vector2D<T> end,
+               const IRenderer::Color color,
+               const IRenderer& renderer) {
+  renderer.DrawLine(start, end, color);  // shaft
 
   auto shaft = end - start;
   shaft.SetMag(25.0);
 
   shaft.Rotate(M_PI / 4);
-  renderer.DrawLine(end, end - shaft, color); // left thingy
+  renderer.DrawLine(end, end - shaft, color);  // left thingy
 
   shaft.Rotate(-M_PI / 2);
-  renderer.DrawLine(end, end - shaft, color); // right thingy
+  renderer.DrawLine(end, end - shaft, color);  // right thingy
 }
 
-void DrawVehicleVelocity(const Vehicle &vehicle, const IRenderer &renderer) {
+void DrawVehicleVelocity(const Vehicle& vehicle, const IRenderer& renderer) {
   if (vehicle.ReadableState().vel.MagSquared() > 0.0001) {
     DrawArrow(vehicle.ReadableState().pos, vehicle.ReadableState().pos + vehicle.ReadableState().vel,
               IRenderer::Color::GREEN, renderer);
   }
 }
 
-void DrawCircleSensor(const Vehicle &vehicle, const IRenderer &renderer) {
+void DrawCircleSensor(const Vehicle& vehicle, const IRenderer& renderer) {
   renderer.DrawCircle(vehicle.ReadableState().pos, vehicle.sensor_circle_radius, IRenderer::Color::WHITE);
 }
 
-void DrawAngularSensor(const Vehicle &vehicle, const IRenderer &renderer) {
+void DrawAngularSensor(const Vehicle& vehicle, const IRenderer& renderer) {
   auto left_cone_part = vehicle.last_heading;
   left_cone_part.Rotate(vehicle.sensor_angle);
   left_cone_part.SetMag(vehicle.sensor_cone_radius);
@@ -448,30 +440,30 @@ void DrawAngularSensor(const Vehicle &vehicle, const IRenderer &renderer) {
   renderer.DrawLine(vehicle.ReadableState().pos, right_cone_part, IRenderer::Color::WHITE);
 }
 
-void DrawVehicleSensor(const Vehicle &vehicle, const IRenderer &renderer) {
+void DrawVehicleSensor(const Vehicle& vehicle, const IRenderer& renderer) {
   switch (vehicle.sensor_type) {
-  case SensorType::CIRCLE:
-    DrawCircleSensor(vehicle, renderer);
-    break;
-  case SensorType::ANGULAR:
-    DrawAngularSensor(vehicle, renderer);
-    break;
-  case SensorType::BOTH:
-    DrawCircleSensor(vehicle, renderer);
-    DrawAngularSensor(vehicle, renderer);
-    break;
+    case SensorType::CIRCLE:
+      DrawCircleSensor(vehicle, renderer);
+      break;
+    case SensorType::ANGULAR:
+      DrawAngularSensor(vehicle, renderer);
+      break;
+    case SensorType::BOTH:
+      DrawCircleSensor(vehicle, renderer);
+      DrawAngularSensor(vehicle, renderer);
+      break;
   }
 }
 
-void DrawVehicle(const Vehicle &vehicle, const IRenderer &renderer) {
+void DrawVehicle(const Vehicle& vehicle, const IRenderer& renderer) {
   IRenderer::Color color{};
   switch (vehicle.clan) {
-  case Clan::BLUE:
-    color = IRenderer::Color::BLUE;
-    break;
-  case Clan::RED:
-    color = IRenderer::Color::RED;
-    break;
+    case Clan::BLUE:
+      color = IRenderer::Color::BLUE;
+      break;
+    case Clan::RED:
+      color = IRenderer::Color::RED;
+      break;
   }
 
   if (vehicle.m_reproduction_ready) {
@@ -479,39 +471,39 @@ void DrawVehicle(const Vehicle &vehicle, const IRenderer &renderer) {
   }
 
   switch (vehicle.vehicle_type) {
-  case VehicleType::BIRD:
-  case VehicleType::TRIANGLE: {
-    auto current_diretion = vehicle.last_heading;
-    auto p1 = vehicle.ReadableState().pos + current_diretion * vehicle.size;
-    auto p3 = vehicle.ReadableState().pos - current_diretion * vehicle.size / 2.0;
-    current_diretion.Rotate(M_PI * 3.0 / 4.0);
-    auto p2 = vehicle.ReadableState().pos + current_diretion * vehicle.size;
-    current_diretion.Rotate(M_PI * 1.0 / 2.0);
-    auto p4 = vehicle.ReadableState().pos + current_diretion * vehicle.size;
+    case VehicleType::BIRD:
+    case VehicleType::TRIANGLE: {
+      auto current_diretion = vehicle.last_heading;
+      auto p1 = vehicle.ReadableState().pos + current_diretion * vehicle.size;
+      auto p3 = vehicle.ReadableState().pos - current_diretion * vehicle.size / 2.0;
+      current_diretion.Rotate(M_PI * 3.0 / 4.0);
+      auto p2 = vehicle.ReadableState().pos + current_diretion * vehicle.size;
+      current_diretion.Rotate(M_PI * 1.0 / 2.0);
+      auto p4 = vehicle.ReadableState().pos + current_diretion * vehicle.size;
 
-    renderer.DrawLine(p1, p2, color);
-    renderer.DrawLine(p2, p3, color);
-    renderer.DrawLine(p3, p4, color);
-    renderer.DrawLine(p4, p1, color);
+      renderer.DrawLine(p1, p2, color);
+      renderer.DrawLine(p2, p3, color);
+      renderer.DrawLine(p3, p4, color);
+      renderer.DrawLine(p4, p1, color);
 
-    // shoot gun
-    if (vehicle.weapon.GetGunShot()) {
-      renderer.DrawCircle(vehicle.weapon.GetPos(), vehicle.weapon.GetShellRadius(), color);
+      // shoot gun
+      if (vehicle.weapon.GetGunShot()) {
+        renderer.DrawCircle(vehicle.weapon.GetPos(), vehicle.weapon.GetShellRadius(), color);
+      }
+
+      break;
     }
+    case VehicleType::CIRCLE:
+    case VehicleType::FLY: {
+      renderer.DrawCircle(vehicle.ReadableState().pos, vehicle.size, color);
 
-    break;
-  }
-  case VehicleType::CIRCLE:
-  case VehicleType::FLY: {
-    renderer.DrawCircle(vehicle.ReadableState().pos, vehicle.size, color);
+      // draw gun
+      if (vehicle.weapon.GetGunShot()) {
+        renderer.DrawCircle(vehicle.weapon.GetPos(), vehicle.weapon.GetShellRadius(), color);
+      }
 
-    // draw gun
-    if (vehicle.weapon.GetGunShot()) {
-      renderer.DrawCircle(vehicle.weapon.GetPos(), vehicle.weapon.GetShellRadius(), color);
+      break;
     }
-
-    break;
-  }
   }
 }
 
@@ -523,8 +515,7 @@ void Vehicle::Draw() const {
   // DrawVehicleSensor(*this, *m_renderer);
 }
 
-void Vehicle::UpdateBehavior(const VehicleStorage &vehicles_in_range, double delta_t) {
-
+void Vehicle::UpdateBehavior(const VehicleStorage& vehicles_in_range, double delta_t) {
   auto found_target = FindClosestVehicle(vehicles_in_range);
 
   if (!found_target.empty()) {
@@ -560,15 +551,14 @@ void Vehicle::UpdateBehavior(const VehicleStorage &vehicles_in_range, double del
   applyForce(wander * 0.01, delta_t);
 }
 
-void Vehicle::UpdatePathFollowing(const std::vector<PathSegment> &path, double delta_t) {
+void Vehicle::UpdatePathFollowing(const std::vector<PathSegment>& path, double delta_t) {
   auto follow_path = FollowPath(path);
 
   applyForce(follow_path, delta_t);
 }
 
-std::optional<VehicleType> Vehicle::UpdateReproduction(const VehicleStorage &vehicles_in_range) {
-
-  auto &parent = Reproduce(vehicles_in_range);
+std::optional<VehicleType> Vehicle::UpdateReproduction(const VehicleStorage& vehicles_in_range) {
+  auto& parent = Reproduce(vehicles_in_range);
 
   if (*this != parent) {
     auto type = vehicle_type;
@@ -584,8 +574,7 @@ std::optional<VehicleType> Vehicle::UpdateReproduction(const VehicleStorage &veh
   }
 }
 
-void Vehicle::UpdateWeapons(const VehicleStorage &vehicles_in_range, double delta_t) {
-
+void Vehicle::UpdateWeapons(const VehicleStorage& vehicles_in_range, double delta_t) {
   if (m_guns_allowed) {
     if (GunSensor(vehicles_in_range)) {
       weapon.FireGun(ReadableState().pos, last_heading, size);
