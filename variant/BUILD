@@ -1,14 +1,23 @@
+TEST_COPTS = [
+    "-pedantic",
+    "-pedantic-errors",
+    "-std=c++17",
+    "-Wall",
+    "-Wextra",
+    "-Wshadow",
+    #    "-Wshorten-64-to-32",
+    "-Wfloat-equal",
+    "-fstrict-aliasing",
+]
+
 cc_test(
     name = "variant_spec",
     srcs = ["variant_spec.cpp"],
-    copts = [
-        "-Iexternal/gtest/include",
-        "-Ilib",
-    ],
+    copts = TEST_COPTS,
     visibility = ["//visibility:public"],
     deps = [
         "//variant:variant",
-        "@gtest_http_archive//:gtest",
+        "@com_google_googletest//:gtest",
     ],
 )
 

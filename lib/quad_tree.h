@@ -1,5 +1,6 @@
 //
 // Created by fberchtold on 9/25/19.
+// TODO store pointers to a continous array?! possible, since its <typename T>
 //
 
 #ifndef AUTOMATA_QUAD_TREE_H

@@ -1,14 +1,23 @@
+TEST_COPTS = [
+    "-pedantic",
+    "-pedantic-errors",
+    "-std=c++14",
+    "-Wall",
+    "-Wextra",
+    "-Wshadow",
+    #    "-Wshorten-64-to-32",
+    "-Wfloat-equal",
+    "-fstrict-aliasing",
+]
+
 cc_test(
     name = "colony_spec",
     srcs = ["colony_spec.cpp"],
-    copts = [
-        "-Iexternal/gtest/include",
-        "-Ilib",
-    ],
+    copts = TEST_COPTS,
     visibility = ["//visibility:public"],
     deps = [
         "//colony:colony",
-        "@gtest_http_archive//:gtest",
+        "@com_google_googletest//:gtest",
     ],
 )
 
