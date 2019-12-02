@@ -8,13 +8,13 @@
 
 #include <vector>
 
-#include <Vector2D.h>
+#include "lib/Vector2D.h"
 
 using Point = Vector2D<int>;
 
 template <typename T>
 struct Node {
-  Node(T value, Point point) : value(value), point(point) {
+  Node(T _value, Point _point) : value(_value), point(_point) {
   }
   T value;
   Point point;

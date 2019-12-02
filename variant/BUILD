@@ -1,14 +1,5 @@
-TEST_COPTS = [
-    "-pedantic",
-    "-pedantic-errors",
-    "-std=c++17",
-    "-Wall",
-    "-Wextra",
-    "-Wshadow",
-    #    "-Wshorten-64-to-32",
-    "-Wfloat-equal",
-    "-fstrict-aliasing",
-]
+load("//:variables.bzl", "TEST_COPTS")
+load("//:variables.bzl", "BUILD_COPTS")
 
 cc_test(
     name = "variant_spec",
@@ -24,5 +15,6 @@ cc_test(
 cc_library(
     name = "variant",
     srcs = ["variant.cpp", "variant.h"],
+    copts = BUILD_COPTS,
     visibility = ["//visibility:public"],
 )

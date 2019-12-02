@@ -1,21 +1,9 @@
-TEST_COPTS = [
-    "-pedantic",
-    "-pedantic-errors",
-    "-std=c++14",
-    "-Wall",
-    "-Wextra",
-    "-Wshadow",
-    #    "-Wshorten-64-to-32",
-    "-Wfloat-equal",
-    "-fstrict-aliasing",
-]
+load("//:variables.bzl", "TEST_COPTS")
 
 cc_test(
     name = "hashtablespec",
     srcs = ["hashtablespec.cpp"],
-    copts = TEST_COPTS + [
-        "-Ilib",
-    ],
+    copts = TEST_COPTS + ["-Ilib"],
     visibility = ["//visibility:public"],
     deps = [
         "//:hashtable",
@@ -26,9 +14,7 @@ cc_test(
 cc_test(
     name = "quad_tree_spec",
     srcs = ["quad_tree_spec.cpp"],
-    copts = TEST_COPTS + [
-        "-Ilib",
-    ],
+    copts = TEST_COPTS + ["-Ilib"],
     visibility = ["//visibility:public"],
     deps = [
         "//:quad_tree",

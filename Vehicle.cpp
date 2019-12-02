@@ -1,12 +1,16 @@
 #include "Vehicle.h"
 
 double Map(double value, double from_start, double from_end, double to_start, double to_end) {
+  constexpr double eps{0.0001};
+
   if (value < from_start) return to_start;
   if (value > from_end) return to_end;
-  if (to_start == to_end) return to_start;  // only if its 0.0!
-  if (from_start == from_end) return NAN;
+  auto to_diff = to_end - to_start;
+  if (std::abs(to_diff) < eps) return to_start;
+  auto from_diff = from_end - from_start;
+  if (std::abs(from_diff) < eps) throw std::invalid_argument("from_* values are within eps: " + std::to_string(eps));
 
-  return to_start + (value - from_start) / (from_end - from_start) * (to_end - to_start);
+  return to_start + (value - from_start) / from_diff * to_diff;
 }
 
 void Vehicle::InitVehicle() {

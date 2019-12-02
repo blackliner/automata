@@ -14,11 +14,13 @@ http_archive(
     urls = ["https://github.com/google/googletest/archive/3f0cf6b62ad1eb50d8736538363d3580dd640c3e.zip"],
 )
 
-load("@bazel_tools//tools/build_defs/repo:git.bzl", "git_repository")
+load("@bazel_tools//tools/build_defs/repo:git.bzl", "git_repository") #new:git_repository is needed for projects without a BUILD file ;-)
 git_repository(
     name = "com_google_benchmark",
     remote = "https://github.com/google/benchmark",
-    #commit = "be4bd8a8a953543a0e4fd2f5f0aa62d7bcca0830",
+    branch = "master",
+    # commit = "367119482ff4abc3d73e4a109b410090fc281337",
+    # shallow_since = "1575278956 +0000",
 )
 
 # needed packages

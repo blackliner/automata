@@ -1,14 +1,4 @@
-TEST_COPTS = [
-    "-pedantic",
-    "-pedantic-errors",
-    "-std=c++14",
-    "-Wall",
-    "-Wextra",
-    "-Wshadow",
-    #    "-Wshorten-64-to-32",
-    "-Wfloat-equal",
-    "-fstrict-aliasing",
-]
+load("//:variables.bzl", "TEST_COPTS", "BUILD_COPTS")
 
 cc_test(
     name = "colony_spec",
@@ -21,8 +11,22 @@ cc_test(
     ],
 )
 
+
+# cc_benchmark(
+cc_test(
+    name = "colony_benchmark",
+    srcs = ["colony_benchmark.cpp"],
+    copts = TEST_COPTS,
+    visibility = ["//visibility:public"],
+    deps = [
+        "//colony:colony",
+        "@com_google_benchmark//:benchmark",
+    ],
+)
+
 cc_library(
     name = "colony",
     srcs = ["colony.cpp", "colony.h"],
+    copts = BUILD_COPTS,
     visibility = ["//visibility:public"],
 )

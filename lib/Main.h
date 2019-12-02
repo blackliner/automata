@@ -7,7 +7,7 @@
 #include "PathSegment.h"
 #include "Vector2D.h"
 #include "Vehicle.h"
-#include "quad_tree.h"
+#include "quadtree/quad_tree.h"
 
 constexpr int fBlockWidth = 1;
 constexpr int nWorldWidth = 210 * 10;

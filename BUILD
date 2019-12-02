@@ -1,3 +1,5 @@
+load("//:variables.bzl", "BUILD_COPTS")
+
 
 cc_binary(
     name = "auto",
@@ -5,10 +7,10 @@ cc_binary(
         "Main.cpp",
         "lib/Main.h",
     ],
-    copts = ["-Ilib"],
+    copts = BUILD_COPTS + ["-Ilib"],
     deps = [
         "vehicle",
-        "quad_tree",
+        "//quadtree:quad_tree",
         "olc_pixel_game_engine",
         #"//lib:vector2d",
     ],
@@ -17,21 +19,15 @@ cc_binary(
 cc_library(
     name = "renderer",
     srcs = ["lib/Renderer.h"],
+    copts = BUILD_COPTS,
     visibility = ["//visibility:public"],
-)
-
-cc_library(
-    name = "quad_tree",
-    srcs = ["lib/quad_tree.h"],
-    visibility = ["//visibility:public"],
-    deps = ["vector2d"],
 )
 
 cc_library(
     name = "vehicle",
     srcs = ["Vehicle.cpp"],
     hdrs = ["lib/Vehicle.h"],
-    copts = ["-Ilib"],
+    copts = BUILD_COPTS + ["-Ilib"],
     visibility = ["//visibility:public"],
     deps = [
         "path_segment",
@@ -44,6 +40,7 @@ cc_library(
 cc_library(
     name = "olc_pixel_game_engine",
     hdrs = ["lib/olcPixelGameEngine.h"],
+    copts = BUILD_COPTS,
     visibility = ["//visibility:public"],
     deps = [
         #"@system_libs//:all", # would work if there was no libpthread_db.so :-(
@@ -57,6 +54,7 @@ cc_library(
 cc_library(
     name = "vector2d",
     hdrs = ["lib/Vector2D.h"],
+    copts = BUILD_COPTS,
     visibility = ["//visibility:public"],
 )
 
@@ -64,7 +62,7 @@ cc_library(
     name = "weapons",
     srcs = ["Weapons.cpp"],
     hdrs = ["lib/Weapons.h"],
-    copts = ["-Ilib"],
+    copts = BUILD_COPTS + ["-Ilib"],
     visibility = ["//visibility:public"],
     deps = ["vector2d"],
 )
@@ -72,7 +70,7 @@ cc_library(
 cc_library(
     name = "path_segment",
     hdrs = ["lib/PathSegment.h"],
-    copts = ["-Ilib"],
+    copts = BUILD_COPTS + ["-Ilib"],
     visibility = ["//visibility:public"],
     deps = ["vector2d"],
 )
@@ -80,12 +78,14 @@ cc_library(
 cc_library(
     name = "perlin",
     hdrs = ["lib/Perlin.h"],
+    copts = BUILD_COPTS,
     visibility = ["//visibility:public"],
 )
 
 cc_library(
     name = "hashtable",
     hdrs = ["lib/hashtable.h"],
+    copts = BUILD_COPTS,
     visibility = ["//visibility:public"],
     deps = ["hash"],
 )
@@ -93,5 +93,6 @@ cc_library(
 cc_library(
     name = "hash",
     hdrs = ["lib/hash.h"],
+    copts = BUILD_COPTS,
     visibility = ["//visibility:public"],
 )

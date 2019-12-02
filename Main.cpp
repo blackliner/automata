@@ -204,12 +204,12 @@ class AddNewVehicleCommand : public ICommand {
                        SDLut* squared_distance_lookup,
                        Vector2D<VectorT> position,
                        VehicleType type,
-                       std::vector<Vehicle>& m_vehicles)
+                       std::vector<Vehicle>& vehicles)
       : m_renderer(renderer),
         m_squared_distance_lookup(squared_distance_lookup),
         m_position(position),
         m_type(type),
-        m_vehicles(m_vehicles) {
+        m_vehicles(vehicles) {
   }
 
   void Execute() override {

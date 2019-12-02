@@ -234,17 +234,18 @@ static glSwapInterval_t *glSwapIntervalEXT;
 
 namespace olc // All OneLoneCoder stuff will now exist in the "olc" namespace
 {
-struct Pixel
-{
-	union {
-		uint32_t n = 0xFF000000;
-		struct
+	struct RGBA
 		{
 			uint8_t r;
 			uint8_t g;
 			uint8_t b;
 			uint8_t a;
 		};
+struct Pixel
+{
+	union {
+		uint32_t n = 0xFF000000;
+		RGBA rgba;
 	};
 
 	Pixel();
@@ -732,18 +733,18 @@ namespace olc
 {
 Pixel::Pixel()
 {
-	r = 0;
-	g = 0;
-	b = 0;
-	a = 255;
+	rgba.r = 0;
+	rgba.g = 0;
+	rgba.b = 0;
+	rgba.a = 255;
 }
 
 Pixel::Pixel(uint8_t red, uint8_t green, uint8_t blue, uint8_t alpha)
 {
-	r = red;
-	g = green;
-	b = blue;
-	a = alpha;
+	rgba.r = red;
+	rgba.g = green;
+	rgba.b = blue;
+	rgba.a = alpha;
 }
 
 Pixel::Pixel(uint32_t p)
@@ -763,6 +764,7 @@ std::wstring ConvertS2W(std::string s)
 	delete[] buffer;
 	return w;
 #else
+	(void)s;
 	return L"SVN FTW!";
 #endif
 }
@@ -888,6 +890,7 @@ olc::rcode Sprite::LoadFromFile(std::string sImageFile, olc::ResourcePack *pack)
 	delete bmp;
 	return olc::OK;
 #else
+	(void)pack;
 	////////////////////////////////////////////////////////////////////////////
 	// Use libpng, Thanks to Guillaume Cottenceau
 	// https://gist.github.com/niw/5963798
@@ -1036,9 +1039,9 @@ Pixel Sprite::SampleBL(float u, float v)
 	olc::Pixel p4 = GetPixel(std::min(x + 1, (int)width - 1), std::min(y + 1, (int)height - 1));
 
 	return olc::Pixel(
-			(uint8_t)((p1.r * u_opposite + p2.r * u_ratio) * v_opposite + (p3.r * u_opposite + p4.r * u_ratio) * v_ratio),
-			(uint8_t)((p1.g * u_opposite + p2.g * u_ratio) * v_opposite + (p3.g * u_opposite + p4.g * u_ratio) * v_ratio),
-			(uint8_t)((p1.b * u_opposite + p2.b * u_ratio) * v_opposite + (p3.b * u_opposite + p4.b * u_ratio) * v_ratio));
+			(uint8_t)((p1.rgba.r * u_opposite + p2.rgba.r * u_ratio) * v_opposite + (p3.rgba.r * u_opposite + p4.rgba.r * u_ratio) * v_ratio),
+			(uint8_t)((p1.rgba.g * u_opposite + p2.rgba.g * u_ratio) * v_opposite + (p3.rgba.g * u_opposite + p4.rgba.g * u_ratio) * v_ratio),
+			(uint8_t)((p1.rgba.b * u_opposite + p2.rgba.b * u_ratio) * v_opposite + (p3.rgba.b * u_opposite + p4.rgba.b * u_ratio) * v_ratio));
 }
 
 Pixel *Sprite::GetData() { return pColData; }
@@ -1337,18 +1340,18 @@ bool PixelGameEngine::Draw(int32_t x, int32_t y, Pixel p) const
 
 	if (nPixelMode == Pixel::MASK)
 	{
-		if (p.a == 255)
+		if (p.rgba.a == 255)
 			return pDrawTarget->SetPixel(x, y, p);
 	}
 
 	if (nPixelMode == Pixel::ALPHA)
 	{
 		Pixel d = pDrawTarget->GetPixel(x, y);
-		float a = (float)(p.a / 255.0f) * fBlendFactor;
+		float a = (float)(p.rgba.a / 255.0f) * fBlendFactor;
 		float c = 1.0f - a;
-		float r = a * (float)p.r + c * (float)d.r;
-		float g = a * (float)p.g + c * (float)d.g;
-		float b = a * (float)p.b + c * (float)d.b;
+		float r = a * (float)p.rgba.r + c * (float)d.rgba.r;
+		float g = a * (float)p.rgba.g + c * (float)d.rgba.g;
+		float b = a * (float)p.rgba.b + c * (float)d.rgba.b;
 		return pDrawTarget->SetPixel(x, y, Pixel((uint8_t)r, (uint8_t)g, (uint8_t)b));
 	}
 
@@ -1896,7 +1899,7 @@ void PixelGameEngine::DrawString(int32_t x, int32_t y, std::string sText, Pixel 
 			{
 				for (uint32_t i = 0; i < 8; i++)
 					for (uint32_t j = 0; j < 8; j++)
-						if (fontSprite->GetPixel(i + ox * 8, j + oy * 8).r > 0)
+						if (fontSprite->GetPixel(i + ox * 8, j + oy * 8).rgba.r > 0)
 							for (uint32_t is = 0; is < scale; is++)
 								for (uint32_t js = 0; js < scale; js++)
 									Draw(x + sx + (i * scale) + is, y + sy + (j * scale) + js, col);
@@ -1905,7 +1908,7 @@ void PixelGameEngine::DrawString(int32_t x, int32_t y, std::string sText, Pixel 
 			{
 				for (uint32_t i = 0; i < 8; i++)
 					for (uint32_t j = 0; j < 8; j++)
-						if (fontSprite->GetPixel(i + ox * 8, j + oy * 8).r > 0)
+						if (fontSprite->GetPixel(i + ox * 8, j + oy * 8).rgba.r > 0)
 							Draw(x + sx + i, y + sy + j, col);
 			}
 			sx += 8 * scale;
@@ -1946,7 +1949,7 @@ bool PixelGameEngine::OnUserCreate()
 {
 	return false;
 }
-bool PixelGameEngine::OnUserUpdate(float fElapsedTime)
+bool PixelGameEngine::OnUserUpdate(float)
 {
 	return false;
 }
