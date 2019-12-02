@@ -56,8 +56,8 @@ TEST(QuadTree, huge_search) {
 
   auto neighbours = quad_tree.Search(left_top, right_bot);
 
-  //ASSERT_EQ(neighbours.size(), 1);
-  //EXPECT_EQ(neighbours.front(), 3);
+  // ASSERT_EQ(neighbours.size(), 1);
+  // EXPECT_EQ(neighbours.front(), 3);
   EXPECT_EQ(quad_tree.Size(), n_iter);
 }
 

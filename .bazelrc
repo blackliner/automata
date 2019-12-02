@@ -1,7 +1,11 @@
-build --cxxopt='-std=c++17' -c opt --copt=-fdiagnostics-color=always
-test --cxxopt='-std=c++17' -c opt 
-run --cxxopt='-std=c++17' -c opt --copt=-fdiagnostics-color=always
+build -c opt
+test -c opt
+run -c opt
 
 #--copt="-pg" --cxxopt="-pg" --linkopt="-pg"
 
 #-c fastbuild|opt|dbg 
+
+#--copt=-fdiagnostics-color=always
+
+#--cxxopt='-std=c++17'
