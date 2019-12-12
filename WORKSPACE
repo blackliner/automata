@@ -1,19 +1,21 @@
-load("@bazel_tools//tools/build_defs/repo:http.bzl", "http_archive")
+workspace(
+    name = "automata",
+)
 
+load("@bazel_tools//tools/build_defs/repo:git.bzl", "git_repository")  #new:git_repository is needed for projects without a BUILD file ;-)
 
-load("@bazel_tools//tools/build_defs/repo:git.bzl", "git_repository") #new:git_repository is needed for projects without a BUILD file ;-)
 git_repository(
     name = "com_google_benchmark",
-    remote = "https://github.com/google/benchmark",
     branch = "master",
+    remote = "https://github.com/google/benchmark",
     # commit = "367119482ff4abc3d73e4a109b410090fc281337",
     # shallow_since = "1575278956 +0000",
 )
 
 git_repository(
     name = "com_google_googletest",
-    remote = "https://github.com/google/googletest",
     branch = "master",
+    remote = "https://github.com/google/googletest",
     # commit = "367119482ff4abc3d73e4a109b410090fc281337",
     # shallow_since = "1575278956 +0000",
 )
@@ -26,8 +28,6 @@ git_repository(
 
 new_local_repository(
     name = "system_libs",
-    # pkg-config --variable=libdir x11
-    path = "/usr/lib/x86_64-linux-gnu",
     build_file_content = """
 cc_library(
     name = "all",
@@ -55,4 +55,6 @@ cc_library(
     visibility = ["//visibility:public"],
 )
 """,
+    # pkg-config --variable=libdir x11
+    path = "/usr/lib/x86_64-linux-gnu",
 )

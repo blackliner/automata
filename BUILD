@@ -8,7 +8,7 @@ cc_binary(
         "Main.cpp",
         "lib/Main.h",
     ],
-    copts = BUILD_COPTS + ["-Ilib"],
+    copts = BUILD_COPTS + ["-Ilib"] + ["-Iquadtree"],
     deps = [
         "vehicle",
         "//quadtree:quad_tree",
@@ -21,6 +21,7 @@ cc_library(
     name = "renderer",
     srcs = ["lib/Renderer.h"],
     copts = BUILD_COPTS,
+    deps = ["vector2d"],
 )
 
 cc_library(
@@ -52,7 +53,7 @@ cc_library(
 cc_library(
     name = "vector2d",
     hdrs = ["lib/Vector2D.h"],
-    copts = BUILD_COPTS,
+    copts = BUILD_COPTS,  # + ["-Ilib"],
 )
 
 cc_library(

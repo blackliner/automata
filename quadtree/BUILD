@@ -1,9 +1,9 @@
-load("//:variables.bzl", "TEST_COPTS", "BUILD_COPTS")
+load("//:variables.bzl", "BUILD_COPTS", "TEST_COPTS")
 
 cc_test(
     name = "quad_tree_spec",
     srcs = ["quad_tree_spec.cpp"],
-    copts = TEST_COPTS, # + ["-Ilib"],
+    copts = TEST_COPTS + ["-Ilib"],
     visibility = ["//visibility:public"],
     deps = [
         "//quadtree:quad_tree",

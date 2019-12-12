@@ -1,7 +1,7 @@
 #ifndef AUTOMATA_RENDERER_H
 #define AUTOMATA_RENDERER_H
 
-#include "lib/Vector2D.h"
+#include "Vector2D.h"
 
 class IRenderer
 {

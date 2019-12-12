@@ -8,7 +8,7 @@
 
 #include <vector>
 
-#include "lib/Vector2D.h"
+#include <Vector2D.h>
 
 using Point = Vector2D<int>;
 
