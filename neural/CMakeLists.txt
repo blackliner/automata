@@ -1,0 +1,15 @@
+
+add_executable(neural_spec
+  neural_spec.cpp)
+add_test(NAME neural_spec COMMAND neural_spec)
+target_link_libraries(neural_spec
+  neural
+  gtest)
+add_executable(neural_benchmark
+  neural_benchmark.cpp)
+add_test(NAME neural_benchmark COMMAND neural_benchmark)
+target_link_libraries(neural_benchmark
+  neural
+  benchmark)
+add_executable(neural
+  neural.cpp)

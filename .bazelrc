@@ -1,4 +1,4 @@
-build -c opt
+build -c opt --copt=-fdiagnostics-color=always --cxxopt='-O3'
 test -c opt
 run -c opt
 
