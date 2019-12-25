@@ -1,5 +1,5 @@
-build -c opt --copt=-fdiagnostics-color=always --cxxopt='-O3'
-test -c opt
+build -c dbg --copt=-fdiagnostics-color=always
+test -c dbg
 run -c opt
 
 #--copt="-pg" --cxxopt="-pg" --linkopt="-pg"

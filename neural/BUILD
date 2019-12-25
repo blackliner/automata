@@ -23,10 +23,17 @@ cc_test(
     ],
 )
 
-cc_binary(
+cc_library(
     name = "neural",
+    srcs = ["neural.h"],
+    copts = BUILD_COPTS,
+    visibility = ["//visibility:public"],
+)
+
+cc_binary(
+    name = "neural_old",
     srcs = [
-        "neural.cpp",
+        "neural_old.cpp",
     ],
     copts = BUILD_COPTS,
     visibility = ["//visibility:public"],

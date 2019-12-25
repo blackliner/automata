@@ -1,5 +1,7 @@
 #include "benchmark/benchmark.h"
 
+#include "neural.h"
+
 static void BM_FirstBench(benchmark::State& state) {
   for (auto _ : state) {
   }
