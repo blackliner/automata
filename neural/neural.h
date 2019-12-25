@@ -1,5 +1,6 @@
 #include <algorithm>
 #include <array>
+#include <cmath>
 #include <vector>
 
 using Data = std::vector<double>;
@@ -38,28 +39,44 @@ class Weights {
   }
 
  private:
-  size_t m_columns;
-  size_t m_rows;
+  size_t m_columns{};
+  size_t m_rows{};
   std::vector<double> m_data;
 };
 
 struct Node {
-  double value;
+  double value{};
 };
 
 class Layer {
  public:
   void SetSize(size_t new_size) {
-    m_nodes.resize(new_size);
+    m_size = new_size;
+    Resize();
   }
 
-  size_t Size() const {
+  size_t InputSize() const {
     return m_nodes.size();
   }
 
+  size_t OutputSize() const {
+    return m_has_bias_node ? m_nodes.size() - 1 : m_nodes.size();
+  }
+
   void SetData(const Data& data) {
-    for (size_t i{}; i < m_nodes.size(); ++i) {
+    size_t iterate_size{m_nodes.size()};
+    if (m_has_bias_node) {
+      --iterate_size;
+    }
+
+    assert(iterate_size == data.size());
+
+    for (size_t i{}; i < iterate_size; ++i) {
       m_nodes[i].value = data[i];
+    }
+
+    if (m_has_bias_node) {
+      m_nodes.back().value = 1.0;
     }
   }
 
@@ -72,12 +89,40 @@ class Layer {
     return data;
   }
 
+  void SetBiasNode(bool new_value) {
+    m_has_bias_node = new_value;
+    Resize();
+  }
+
  private:
   std::vector<Node> m_nodes;
+  bool m_has_bias_node{};
+  size_t m_size{};
+
+  void Resize() {
+    if (m_has_bias_node) {
+      m_nodes.resize(m_size + 1);
+    } else {
+      m_nodes.resize(m_size);
+    }
+  }
 };
 
-Data FeedForwardLayer(const Layer& first_layer, const Weights& weights) {
-  assert(weights.Ninput() == first_layer.Size());
+enum class TFtype { LINEAR, SIGMOID };
+
+double TransferFunction(double value, TFtype tf_type = TFtype::LINEAR) {
+  switch (tf_type) {
+    case TFtype::LINEAR:
+      return value;
+    case TFtype::SIGMOID:
+      return 1.0 / (1.0 + exp(-value));
+    default:
+      return value;
+  }
+}
+
+Data FeedForwardLayer(const Layer& first_layer, const Weights& weights, TFtype tf_type = TFtype::LINEAR) {
+  assert(weights.Ninput() == first_layer.InputSize());
 
   Data return_data;
   return_data.reserve(weights.Noutput());
@@ -87,6 +132,7 @@ Data FeedForwardLayer(const Layer& first_layer, const Weights& weights) {
     for (size_t n_input{}; n_input < weights.Ninput(); ++n_input) {
       sum += first_layer.GetData()[n_input] * weights(n_input, n_output);
     }
+    sum = TransferFunction(sum, tf_type);
     return_data.push_back(sum);
   }
 
@@ -97,25 +143,24 @@ using Layout = std::vector<size_t>;
 
 class Network {
  public:
-  void SetLayout(const Layout& layout) {
+  void SetLayout(const Layout& layout, bool wiht_bias = false) {
     assert(layout.size() > 1);
     assert(std::all_of(layout.begin(), layout.end(), [](const auto& value) { return value > 0; }));
 
     m_layout = layout;
-    const auto required_weights = layout.size() - 1;
-    m_weights.resize(required_weights);
-    for (size_t n_weight{}; n_weight < required_weights; ++n_weight) {
-      m_weights[n_weight].Resize(layout[n_weight], layout[n_weight + 1]);
-    }
 
-    if (layout.size() != m_layers.size()) {
-      m_layers.resize(layout.size());
-    }
+    m_layers.resize(layout.size());
 
     for (size_t i{}; i < m_layers.size(); ++i) {
-      if (layout[i] != m_layers[i].Size()) {
-        m_layers[i].SetSize(layout[i]);
-      }
+      m_layers[i].SetBiasNode(wiht_bias);
+      m_layers[i].SetSize(layout[i]);
+    }
+
+    const auto required_weights = layout.size() - 1;
+    m_weights.resize(required_weights);
+
+    for (size_t n_weight{}; n_weight < required_weights; ++n_weight) {
+      m_weights[n_weight].Resize(m_layers[n_weight].InputSize(), m_layers[n_weight + 1].OutputSize());
     }
   }
 

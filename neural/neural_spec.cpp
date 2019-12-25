@@ -32,14 +32,14 @@ TEST(Weights, 2x2_with_reset) {
   EXPECT_FLOAT_EQ(3.5, w(1, 1));
 }
 
-TEST(Neural, set_size) {
+TEST(Layer, set_size) {
   Layer layer;
   layer.SetSize(1);
 
-  EXPECT_EQ(1, layer.Size());
+  EXPECT_EQ(1, layer.InputSize());
 }
 
-TEST(Neural, set_data) {
+TEST(Layer, set_data) {
   Layer layer;
   layer.SetSize(1);
   Data input{1.0};
@@ -48,7 +48,7 @@ TEST(Neural, set_data) {
   EXPECT_EQ(1, layer.GetData().front());
 }
 
-TEST(Neural, feed_forward_0) {
+TEST(Layer, feed_forward_0) {
   Layer layer;
   layer.SetSize(1);
 
@@ -64,7 +64,7 @@ TEST(Neural, feed_forward_0) {
   EXPECT_FLOAT_EQ(0.0, result.back());
 }
 
-TEST(Neural, feed_forward_1) {
+TEST(Layer, feed_forward_1) {
   Layer layer;
   layer.SetSize(1);
 
@@ -79,7 +79,7 @@ TEST(Neural, feed_forward_1) {
   EXPECT_FLOAT_EQ(1.0, result.back());
 }
 
-TEST(Neural, feed_forward_size2_0) {
+TEST(Layer, feed_forward_size2_0) {
   Layer layer;
   layer.SetSize(2);
   layer.SetData({0.0, 0.0});
@@ -93,7 +93,7 @@ TEST(Neural, feed_forward_size2_0) {
   EXPECT_FLOAT_EQ(0.0, result.back());
 }
 
-TEST(Neural, feed_forward_size2_1) {
+TEST(Layer, feed_forward_size2_1) {
   Layer layer;
   layer.SetSize(2);
   layer.SetData({1.0, 1.0});
@@ -105,6 +105,51 @@ TEST(Neural, feed_forward_size2_1) {
   auto result = FeedForwardLayer(layer, weights);
 
   EXPECT_FLOAT_EQ(2.0, result.back());
+}
+
+TEST(Layer, layer_with_bias_node) {
+  Layer layer;
+  layer.SetSize(2);
+  layer.SetBiasNode(true);
+  layer.SetData({1.0, 1.0});
+
+  Weights weights;
+  weights.Resize(layer.InputSize(), 1);
+  weights.Reset(1.0);
+
+  auto result = FeedForwardLayer(layer, weights);
+
+  EXPECT_FLOAT_EQ(3.0, result.back());
+}
+
+TEST(Layer, layer_with_linear_tf) {
+  Layer layer;
+  layer.SetSize(2);
+  layer.SetBiasNode(true);
+  layer.SetData({1.0, 1.0});
+
+  Weights weights;
+  weights.Resize(layer.InputSize(), 1);
+  weights.Reset(1.0);
+
+  auto result = FeedForwardLayer(layer, weights, TFtype::LINEAR);
+
+  EXPECT_FLOAT_EQ(3.0, result.back());
+}
+
+TEST(Layer, layer_with_sigmoid_tf) {
+  Layer layer;
+  layer.SetSize(2);
+  layer.SetBiasNode(true);
+  layer.SetData({1.0, 1.0});
+
+  Weights weights;
+  weights.Resize(layer.InputSize(), 1);
+  weights.Reset(1.0);
+
+  auto result = FeedForwardLayer(layer, weights, TFtype::SIGMOID);
+
+  EXPECT_FLOAT_EQ(1.0 / (1.0 + exp(-3.0)), result.back());
 }
 
 TEST(Network, set_layout) {
@@ -207,6 +252,19 @@ TEST(Network, feed_forward_2x4x8x16x32x1_1) {
   const auto output = network.GetOutput();
 
   EXPECT_FLOAT_EQ(32768.0, output.front());
+}
+
+TEST(Network, feed_forward_2x2x1_1_with_bias) {
+  Network network;
+  network.SetLayout({2, 2, 1}, true);
+  network.ResetWeights(1.0);
+  network.SetInput({1.0, 1.0});
+
+  network.FeedForward();
+
+  const auto output = network.GetOutput();
+
+  EXPECT_FLOAT_EQ(7.0, output.front());
 }
 
 int main(int argc, char** argv) {
