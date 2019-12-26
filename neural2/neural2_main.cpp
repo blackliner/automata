@@ -16,7 +16,8 @@ void PrintWeights(const std::vector<Weights>& weights) {
   }
 }
 
-double PrintErrors(Network& network) {
+template <typename TF>
+double PrintErrors(Network<TF>& network) {
   network.SetInput({0.0, 0.0});
   network.FeedForward();
   const double error_1 = network.GetError({0.0});
@@ -43,10 +44,9 @@ double PrintErrors(Network& network) {
 }
 
 int main() {
-  Network network;
-  network.SetLayout({2, 100, 100, 100, 100, 1});
+  Network<Sigmoid> network;
+  network.SetLayout({2, 1000, 100, 100, 100, 1}, true);
   network.RandomizeWeights();
-  network.SetTFtype(TFtype::SIGMOID);
   network.SetLearnFactor(0.9);
   //   PrintWeights(network.GetWeights());
 

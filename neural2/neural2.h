@@ -18,19 +18,19 @@ double CalculateError(const Data& lhs, const Data& rhs) {
 class Weights {
   // x = columns = n_input, y = rows = n_output
  public:
-  double& operator()(size_t x, size_t y) {
+  double& operator()(size_t x, size_t y) noexcept {
     return m_data[x + y * m_columns];
   }
 
-  const double& operator()(size_t x, size_t y) const {
+  const double& operator()(size_t x, size_t y) const noexcept {
     return m_data[x + y * m_columns];
   }
 
-  double& operator()(size_t idx) {
+  double& operator()(size_t idx) noexcept {
     return m_data[idx];
   }
 
-  const double& operator()(size_t idx) const {
+  const double& operator()(size_t idx) const noexcept {
     return m_data[idx];
   }
 
@@ -47,20 +47,20 @@ class Weights {
     }
   }
 
-  size_t Ninput() const {
+  constexpr size_t Ninput() const noexcept {
     return m_columns;
   }
 
-  size_t Noutput() const {
+  constexpr size_t Noutput() const noexcept {
     return m_rows;
   }
 
-  size_t Size() const {
+  constexpr size_t Size() const noexcept {
     return m_columns * m_rows;
   }
 
-  void SetWeights(std::initializer_list<double>&& values) {
-    m_data = values;
+  void SetWeights(std::initializer_list<double>&& new_data) {
+    m_data = std::move(new_data);
   }
 
   void Randomize() {
@@ -74,13 +74,7 @@ class Weights {
  private:
   size_t m_columns{};
   size_t m_rows{};
-  std::vector<double> m_data;
-};
-
-// maybe rename in_value to sum and out_value to result?
-struct Node {
-  double in_value{};   // here are the weighted inputs summed up
-  double out_value{};  // this is tf(in_value)
+  Data m_data;
 };
 
 class Layer {
@@ -90,64 +84,40 @@ class Layer {
     Resize();
   }
 
-  size_t InputSize() const {
-    return m_nodes.size();
+  constexpr size_t InputSize() const noexcept {
+    return m_size;
   }
 
-  size_t OutputSize() const {
-    return m_has_bias_node ? m_nodes.size() - 1 : m_nodes.size();
+  constexpr size_t OutputSize() const noexcept {
+    return m_size + m_has_bias_node;
   }
 
-  void SetOutputData(const Data& data) {
-    size_t iterate_size{m_nodes.size()};
-    if (m_has_bias_node) {
-      --iterate_size;
-    }
+  void SetOutputData(Data data) {
+    assert(m_size == data.size());
 
-    assert(iterate_size == data.size());
-
-    for (size_t i{}; i < iterate_size; ++i) {
-      m_nodes[i].out_value = data[i];
-    }
+    m_results = std::move(data);
 
     if (m_has_bias_node) {
-      m_nodes.back().out_value = 1.0;
+      m_results.push_back(1.0);
     }
   }
 
-  void SetInputData(const Data& data) {
-    size_t iterate_size{m_nodes.size()};
-    if (m_has_bias_node) {
-      --iterate_size;
-    }
+  void SetInputData(Data data) {
+    assert(m_size == data.size());
 
-    assert(iterate_size == data.size());
-
-    for (size_t i{}; i < iterate_size; ++i) {
-      m_nodes[i].in_value = data[i];
-    }
+    m_sums = std::move(data);
   }
 
-  Data GetData() const {
-    Data data;
-    data.reserve(m_nodes.size());
-    for (const auto& node : m_nodes) {
-      data.push_back(node.out_value);
-    }
-    return data;
+  const Data& GetOutputData() const noexcept {
+    return m_results;
   }
 
-  double GetData(size_t idx) const {
-    return m_nodes[idx].out_value;
+  double GetData(size_t idx) const noexcept {
+    return m_results[idx];
   }
 
-  Data GetInputData() const {
-    Data data;
-    data.reserve(m_nodes.size());
-    for (const auto& node : m_nodes) {
-      data.push_back(node.in_value);
-    }
-    return data;
+  const Data& GetInputData() const noexcept {
+    return m_sums;
   }
 
   void SetBiasNode(bool new_value) {
@@ -156,63 +126,66 @@ class Layer {
   }
 
  private:
-  std::vector<Node> m_nodes;
+  Data m_sums;  // m sums has no entry for the bias value!!
+  Data m_results;
+
   bool m_has_bias_node{};
   size_t m_size{};
 
   void Resize() {
-    if (m_has_bias_node) {
-      m_nodes.resize(m_size + 1);
-    } else {
-      m_nodes.resize(m_size);
-    }
+    m_sums.resize(InputSize());
+    m_results.resize(OutputSize());
   }
 };
 
-enum class TFtype { LINEAR, SIGMOID };
-
-double TransferFunction(double value, TFtype tf_type = TFtype::LINEAR) {
-  switch (tf_type) {
-    case TFtype::LINEAR:
-      return value;
-    case TFtype::SIGMOID:
-      return 1.0 / (1.0 + exp(-value));
-    default:
-      return value;
+struct Linear {
+  static constexpr double TransferFunction(double value) noexcept {
+    return value;
   }
-}
 
-Data TransferFunction(const Data& data, TFtype tf_type = TFtype::LINEAR) {
-  Data result;
-  result.reserve(data.size());
-  for (const auto& value : data) {
-    result.push_back(TransferFunction(value, tf_type));
+  static Data TransferFunction(const Data& data) noexcept {
+    return data;
   }
-  return result;
-}
 
-double InverseTransferFunction(double value, TFtype tf_type = TFtype::LINEAR) {
-  switch (tf_type) {
-    case TFtype::LINEAR:
-      return 1.0;
-    case TFtype::SIGMOID:
-      return TransferFunction(value, TFtype::SIGMOID) * (1.0 - TransferFunction(value, TFtype::SIGMOID));
-    default:
-      return 1.0;
+  static constexpr double InverseTransferFunction(double) noexcept {
+    return 1.0;
   }
-}
 
-Data InverseTransferFunction(const Data& data, TFtype tf_type = TFtype::LINEAR) {
-  Data result;
-  result.reserve(data.size());
-  for (const auto& value : data) {
-    result.push_back(InverseTransferFunction(value, tf_type));
+  static Data InverseTransferFunction(Data data) noexcept {
+    for (size_t i{}; i < data.size(); ++i) {
+      data[i] = InverseTransferFunction(data[i]);
+    }
+    return data;
   }
-  return result;
-}
+};
+
+struct Sigmoid {
+  static constexpr double TransferFunction(double value) noexcept {
+    return 1.0 / (1.0 + exp(-value));
+  }
+
+  static Data TransferFunction(Data data) noexcept {
+    for (size_t i{}; i < data.size(); ++i) {
+      data[i] = TransferFunction(data[i]);
+    }
+    return data;
+  }
+
+  static constexpr double InverseTransferFunction(double value) noexcept {
+    const auto tf_value = TransferFunction(value);
+    return tf_value * (1.0 - tf_value);
+  }
+
+  static Data InverseTransferFunction(Data data) noexcept {
+    for (size_t i{}; i < data.size(); ++i) {
+      data[i] = InverseTransferFunction(data[i]);
+    }
+    return data;
+  }
+};
 
 Data FeedForwardLayer(const Layer& layer, const Weights& weights) {
-  assert(weights.Ninput() == layer.InputSize());
+  assert(weights.Ninput() == layer.OutputSize());
 
   Data return_data;
   return_data.reserve(weights.Noutput());
@@ -220,7 +193,7 @@ Data FeedForwardLayer(const Layer& layer, const Weights& weights) {
   for (size_t n_output{}; n_output < weights.Noutput(); ++n_output) {
     double sum{};
     for (size_t n_input{}; n_input < weights.Ninput(); ++n_input) {
-      sum += layer.GetData()[n_input] * weights(n_input, n_output);
+      sum += layer.GetOutputData()[n_input] * weights(n_input, n_output);
     }
     return_data.push_back(sum);
   }
@@ -246,18 +219,17 @@ Data Dot(const Data& lhs, const Data& rhs) {
   return result;
 }
 
-Data CalculateDeltaSum(const Layer& layer, const Data& target, TFtype tf_type = TFtype::LINEAR) {
-  const auto delta = Subtract(target, layer.GetData());
-  const auto derivative = InverseTransferFunction(layer.GetInputData(), tf_type);
+template <typename TF>
+Data CalculateDeltaSum(const Layer& layer, const Data& target) {
+  const auto delta = Subtract(target, layer.GetOutputData());
+  const auto derivative = TF::InverseTransferFunction(layer.GetInputData());
   const auto delta_sum = Dot(derivative, delta);
 
   return delta_sum;
 }
 
-Data CalcHiddenDeltaSum(const Layer& layer,
-                        const Weights& weight,
-                        const Data& delta_sum,
-                        TFtype tf_type = TFtype::LINEAR) {
+template <typename TF>
+Data CalcHiddenDeltaSum(const Layer& layer, const Weights& weight, const Data& delta_sum) {
   Data result;
   result.resize(weight.Ninput());
 
@@ -267,7 +239,7 @@ Data CalcHiddenDeltaSum(const Layer& layer,
     }
   }
 
-  const auto derivative = InverseTransferFunction(layer.GetInputData(), tf_type);
+  const auto derivative = TF::InverseTransferFunction(layer.GetInputData());
 
   result = Dot(derivative, result);
 
@@ -289,6 +261,7 @@ Weights CalculateDeltaWeights(const Layer& layer, const Data& delta_sum) {
 
 using Layout = std::vector<size_t>;
 
+template <typename TF>
 class Network {
  public:
   void SetLayout(const Layout& layout, bool wiht_bias = false) {
@@ -304,16 +277,15 @@ class Network {
       m_layers[i].SetSize(layout[i]);
     }
 
+    // last layer does not need a bias node
+    m_layers.back().SetBiasNode(false);
+
     const auto required_weights = layout.size() - 1;
     m_weights.resize(required_weights);
 
     for (size_t n_weight{}; n_weight < required_weights; ++n_weight) {
-      m_weights[n_weight].Resize(m_layers[n_weight].InputSize(), m_layers[n_weight + 1].OutputSize());
+      m_weights[n_weight].Resize(m_layers[n_weight].OutputSize(), m_layers[n_weight + 1].InputSize());
     }
-  }
-
-  void SetTFtype(TFtype tf_type) {
-    m_tf_type = tf_type;
   }
 
   void SetLearnFactor(double new_factor) {
@@ -329,9 +301,9 @@ class Network {
     m_layers.front().SetOutputData(data);
   }
 
-  Data GetOutput() const {
+  const Data& GetOutput() const {
     assert(!m_layers.empty());
-    return m_layers.back().GetData();
+    return m_layers.back().GetOutputData();
   }
 
   void ResetWeights(double new_value = 0.0) {
@@ -351,7 +323,7 @@ class Network {
       const auto data = FeedForwardLayer(m_layers[layer_n], m_weights[layer_n]);
       m_layers[layer_n + 1].SetInputData(data);
 
-      const auto tf_data = TransferFunction(data, m_tf_type);
+      const auto tf_data = TF::TransferFunction(data);
       m_layers[layer_n + 1].SetOutputData(tf_data);
     }
   }
@@ -363,26 +335,22 @@ class Network {
     for (size_t layer_n = m_layers.size() - 1; layer_n > 0; --layer_n) {
       if (layer_n == m_layers.size() - 1)  // output layer!
       {
-        delta_sum = CalculateDeltaSum(m_layers[layer_n], target, m_tf_type);
+        delta_sum = CalculateDeltaSum<TF>(m_layers[layer_n], target);
       } else {
-        delta_sum = CalcHiddenDeltaSum(m_layers[layer_n], m_weights[layer_n], delta_sum, m_tf_type);
+        delta_sum = CalcHiddenDeltaSum<TF>(m_layers[layer_n], m_weights[layer_n], delta_sum);
       }
 
       delta_weights[layer_n - 1] = CalculateDeltaWeights(m_layers[layer_n - 1], delta_sum);
-
-      // Weights weights_opt;
-      // weights_opt.Resize(m_weights.back().Ninput(), m_weights.back().Noutput());
     }
 
     for (size_t weight_n{}; weight_n < m_weights.size(); ++weight_n) {
       for (size_t i{}; i < m_weights[weight_n].Ninput() * m_weights[weight_n].Noutput(); ++i) {
-        // weights_opt(i) = m_weights.back()(i) + 0.5 * delta_weights(i);
         m_weights[weight_n](i) = m_weights[weight_n](i) + m_learn_factor * delta_weights[weight_n](i);
       }
     }
   }
 
-  double GetError(const Data& target) const {
+  constexpr double GetError(const Data& target) const {
     return CalculateError(GetOutput(), target);
   }
 
@@ -397,7 +365,7 @@ class Network {
  private:
   double m_learn_factor{0.5};
   Layout m_layout;
-  TFtype m_tf_type{TFtype::LINEAR};
+
   std::vector<Weights> m_weights;
   std::vector<Layer> m_layers;
 };

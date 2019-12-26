@@ -3,10 +3,9 @@
 #include "neural2.h"
 
 static void BM_FirstBench(benchmark::State& state) {
-  Network network;
+  Network<Sigmoid> network;
   network.SetLayout({2, 100, 100, 100, 100, 1});
   network.RandomizeWeights();
-  network.SetTFtype(TFtype::SIGMOID);
   network.SetLearnFactor(0.9);
 
   for (auto _ : state) {
