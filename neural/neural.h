@@ -55,12 +55,29 @@ class Weights {
     return m_rows;
   }
 
+  size_t Size() const {
+    return m_columns * m_rows;
+  }
+
+  void SetWeights(std::initializer_list<double>&& values) {
+    m_data = values;
+  }
+
+  void Randomize() {
+    for (auto& value : m_data) {
+      value = static_cast<double>(rand()) / RAND_MAX;
+      value -= 0.5;
+      value *= 2.0;
+    }
+  }
+
  private:
   size_t m_columns{};
   size_t m_rows{};
   std::vector<double> m_data;
 };
 
+// maybe rename in_value to sum and out_value to result?
 struct Node {
   double in_value{};   // here are the weighted inputs summed up
   double out_value{};  // this is tf(in_value)
@@ -237,13 +254,33 @@ Data CalculateDeltaSum(const Layer& layer, const Data& target, TFtype tf_type = 
   return delta_sum;
 }
 
+Data CalcHiddenDeltaSum(const Layer& layer,
+                        const Weights& weight,
+                        const Data& delta_sum,
+                        TFtype tf_type = TFtype::LINEAR) {
+  Data result;
+  result.resize(weight.Ninput());
+
+  for (size_t input_n{}; input_n < result.size(); ++input_n) {
+    for (size_t output_n{}; output_n < weight.Noutput(); ++output_n) {
+      result[input_n] += weight(input_n, output_n) * delta_sum[output_n];
+    }
+  }
+
+  const auto derivative = InverseTransferFunction(layer.GetInputData(), tf_type);
+
+  result = Dot(derivative, result);
+
+  return result;
+}
+
 Weights CalculateDeltaWeights(const Layer& layer, const Data& delta_sum) {
   Weights result;
   result.Resize(layer.OutputSize(), delta_sum.size());
 
-  for (size_t layer_n{}; layer_n < layer.OutputSize(); ++layer_n) {
+  for (size_t node_n{}; node_n < layer.OutputSize(); ++node_n) {
     for (size_t output_n{}; output_n < delta_sum.size(); ++output_n) {
-      result(layer_n, output_n) = delta_sum[output_n] * layer.GetData(layer_n);
+      result(node_n, output_n) = delta_sum[output_n] * layer.GetData(node_n);
     }
   }
 
@@ -303,39 +340,32 @@ class Network {
     }
   }
 
+  void RandomizeWeights() {
+    for (auto& weight : m_weights) {
+      weight.Randomize();
+    }
+  }
+
   void FeedForward() {
     for (size_t layer_n{}; layer_n < m_layers.size() - 1; ++layer_n) {
       const auto data = FeedForwardLayer(m_layers[layer_n], m_weights[layer_n]);
       m_layers[layer_n + 1].SetInputData(data);
-      m_layers[layer_n + 1].SetOutputData(TransferFunction(data, m_tf_type));
+
+      const auto tf_data = TransferFunction(data, m_tf_type);
+      m_layers[layer_n + 1].SetOutputData(tf_data);
     }
   }
 
-  Data CalcHiddenDeltaSum(const Weights& weight, const Data& delta_sum, TFtype tf_type = TFtype::LINEAR) {
-    Data result;
-    result.resize(weight.Ninput());
-
-    for (size_t input_n{}; input_n < result.size(); ++input_n) {
-      for (size_t output_n{}; output_n < weight.Noutput(); ++output_n) {
-        result[input_n] += weight(input_n, output_n) * delta_sum[output_n];
-      }
-
-      result[input_n] *= InverseTransferFunction(result[input_n], tf_type);
-    }
-
-    return result;
-  }
-
-  void BackPropagate(const Data& target, TFtype tf_type = TFtype::LINEAR) {
+  void BackPropagate(const Data& target) {
     auto delta_weights{m_weights};
 
     Data delta_sum;
     for (size_t layer_n = m_layers.size() - 1; layer_n > 0; --layer_n) {
       if (layer_n == m_layers.size() - 1)  // output layer!
       {
-        delta_sum = CalculateDeltaSum(m_layers[layer_n], target, tf_type);
+        delta_sum = CalculateDeltaSum(m_layers[layer_n], target, m_tf_type);
       } else {
-        delta_sum = CalcHiddenDeltaSum(m_weights[layer_n - 1], delta_sum, tf_type);
+        delta_sum = CalcHiddenDeltaSum(m_layers[layer_n], m_weights[layer_n], delta_sum, m_tf_type);
       }
 
       delta_weights[layer_n - 1] = CalculateDeltaWeights(m_layers[layer_n - 1], delta_sum);
@@ -352,12 +382,16 @@ class Network {
     }
   }
 
-  double GetError(const Data& target) {
+  double GetError(const Data& target) const {
     return CalculateError(GetOutput(), target);
   }
 
   const std::vector<Weights>& GetWeights() const {
     return m_weights;
+  }
+
+  void SetWeights(std::vector<Weights> weights) {
+    m_weights = std::move(weights);
   }
 
  private:

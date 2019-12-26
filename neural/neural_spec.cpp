@@ -32,6 +32,8 @@ TEST(Weights, 2x2_with_reset) {
   EXPECT_FLOAT_EQ(3.5, w(1, 1));
 }
 
+// TEST(Weights, randomize)
+
 TEST(Layer, set_size) {
   Layer layer;
   layer.SetSize(1);
@@ -428,6 +430,54 @@ TEST(Network, back_propagate_2x2x1) {
 
   network.FeedForward();
   const double error_opt = network.GetError(target);
+
+  EXPECT_LT(error_opt, error);
+}
+
+// TEST(Network, set_weights){}
+// TEST(Network, set_weights_with wrong_dimension){}
+// TEST(Network, randomize_weights)
+
+TEST(Network, back_propagate_2x3x1_with_weights) {
+  std::vector<Weights> weights;
+  weights.resize(2);
+  weights[0].Resize(2, 3);
+  weights[0].SetWeights({0.8, 0.2, 0.4, 0.9, 0.3, 0.5});
+  weights[1].Resize(3, 1);
+  weights[1].SetWeights({0.3, 0.5, 0.9});
+
+  Network network;
+  network.SetLearnFactor(1.0);
+  network.SetTFtype(TFtype::SIGMOID);
+  network.SetLayout({2, 3, 1});
+  network.ResetWeights(1.0);
+  network.SetWeights(std::move(weights));
+  network.SetInput({1.0, 1.0});
+
+  Data target{0.0};
+
+  network.FeedForward();
+  const double error = network.GetError(target);
+
+  network.BackPropagate(target);
+
+  network.FeedForward();
+  const double error_opt = network.GetError(target);
+
+  std::vector<Weights> weights_target;
+  weights_target.resize(2);
+  weights_target[0].Resize(2, 3);
+  weights_target[0].Resize(2, 3);
+  weights_target[0].SetWeights({0.712, 0.112, 0.355, 0.855, 0.268, 0.468});
+  weights_target[1].Resize(3, 1);
+  weights_target[1].SetWeights({0.166, 0.329, 0.708});
+
+  for (size_t i{}; i < weights_target.size(); ++i) {
+    for (size_t j{}; j < weights_target[i].Size(); ++j) {
+      // skip for now, since i do not have any ground truth data
+      // EXPECT_FLOAT_EQ(weights_target[i](j), network.GetWeights()[i](j));
+    }
+  }
 
   EXPECT_LT(error_opt, error);
 }
