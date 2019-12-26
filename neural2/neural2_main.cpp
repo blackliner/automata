@@ -1,6 +1,6 @@
 #include <iomanip>
 #include <iostream>
-#include "neural.h"
+#include "neural2.h"
 
 using namespace std;
 

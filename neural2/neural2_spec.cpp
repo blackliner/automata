@@ -1,6 +1,6 @@
 #include "gtest/gtest.h"
 
-#include "neural.h"
+#include "neural2.h"
 
 TEST(Weights, 1x1) {
   Weights w;

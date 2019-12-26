@@ -1,6 +1,6 @@
 #include "benchmark/benchmark.h"
 
-#include "neural.h"
+#include "neural2.h"
 
 static void BM_FirstBench(benchmark::State& state) {
   Network network;

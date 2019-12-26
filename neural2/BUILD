@@ -1,52 +1,43 @@
 load("//:variables.bzl", "BUILD_COPTS", "TEST_COPTS")
 
 cc_test(
-    name = "neural_spec",
-    srcs = ["neural_spec.cpp"],
+    name = "neural2_spec",
+    srcs = ["neural2_spec.cpp"],
     copts = TEST_COPTS,
     visibility = ["//visibility:public"],
     deps = [
-        "//neural",
+        "//neural2",
         "@com_google_googletest//:gtest",
     ],
 )
 
 # cc_benchmark(
 cc_test(
-    name = "neural_benchmark",
-    srcs = ["neural_benchmark.cpp"],
+    name = "neural2_benchmark",
+    srcs = ["neural2_benchmark.cpp"],
     copts = TEST_COPTS,
     visibility = ["//visibility:public"],
     deps = [
-        "//neural",
+        "//neural2",
         "@com_google_benchmark//:benchmark",
     ],
 )
 
 cc_library(
-    name = "neural",
-    srcs = ["neural.h"],
+    name = "neural2",
+    srcs = ["neural2.h"],
     copts = BUILD_COPTS,
     visibility = ["//visibility:public"],
 )
 
 cc_binary(
-    name = "neural_old",
+    name = "neural2_main",
     srcs = [
-        "neural_old.cpp",
-    ],
-    copts = BUILD_COPTS,
-    visibility = ["//visibility:public"],
-)
-
-cc_binary(
-    name = "neural_main",
-    srcs = [
-        "neural_main.cpp",
+        "neural2_main.cpp",
     ],
     copts = BUILD_COPTS,
     visibility = ["//visibility:public"],
     deps = [
-        "//neural",
+        "//neural2",
     ],
 )
