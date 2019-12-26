@@ -44,14 +44,14 @@ double PrintErrors(Network& network) {
 
 int main() {
   Network network;
-  network.SetLayout({2, 5, 4, 3, 1});
+  network.SetLayout({2, 100, 100, 100, 100, 1});
   network.RandomizeWeights();
   network.SetTFtype(TFtype::SIGMOID);
   network.SetLearnFactor(0.9);
-  PrintWeights(network.GetWeights());
+  //   PrintWeights(network.GetWeights());
 
   double error = PrintErrors(network);
-
+  int n{};
   while (error > 0.1) {
     network.SetInput({0.0, 0.0});
     network.FeedForward();
@@ -69,10 +69,13 @@ int main() {
     network.FeedForward();
     network.BackPropagate({0.0});
 
-    error = PrintErrors(network);
+    if (++n % 10 == 0) {
+      cout << "Run: " << n << endl;
+      error = PrintErrors(network);
+    }
   }
 
-  PrintWeights(network.GetWeights());
+  //   PrintWeights(network.GetWeights());
 
   return 0;
 }
