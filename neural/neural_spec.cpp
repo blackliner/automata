@@ -43,7 +43,7 @@ TEST(Layer, set_data) {
   Layer layer;
   layer.SetSize(1);
   Data input{1.0};
-  layer.SetData(input);
+  layer.SetOutputData(input);
 
   EXPECT_EQ(1, layer.GetData().front());
 }
@@ -53,7 +53,7 @@ TEST(Layer, feed_forward_0) {
   layer.SetSize(1);
 
   Data input{0.0};
-  layer.SetData(input);
+  layer.SetOutputData(input);
 
   Weights weights;
   weights.Resize(1, 1);
@@ -68,7 +68,7 @@ TEST(Layer, feed_forward_1) {
   Layer layer;
   layer.SetSize(1);
 
-  layer.SetData({1.0});
+  layer.SetOutputData({1.0});
 
   Weights weights;
   weights.Resize(1, 1);
@@ -82,7 +82,7 @@ TEST(Layer, feed_forward_1) {
 TEST(Layer, feed_forward_size2_0) {
   Layer layer;
   layer.SetSize(2);
-  layer.SetData({0.0, 0.0});
+  layer.SetOutputData({0.0, 0.0});
 
   Weights weights;
   weights.Resize(2, 1);
@@ -96,7 +96,7 @@ TEST(Layer, feed_forward_size2_0) {
 TEST(Layer, feed_forward_size2_1) {
   Layer layer;
   layer.SetSize(2);
-  layer.SetData({1.0, 1.0});
+  layer.SetOutputData({1.0, 1.0});
 
   Weights weights;
   weights.Resize(2, 1);
@@ -111,7 +111,7 @@ TEST(Layer, layer_with_bias_node) {
   Layer layer;
   layer.SetSize(2);
   layer.SetBiasNode(true);
-  layer.SetData({1.0, 1.0});
+  layer.SetOutputData({1.0, 1.0});
 
   Weights weights;
   weights.Resize(layer.InputSize(), 1);
@@ -122,34 +122,123 @@ TEST(Layer, layer_with_bias_node) {
   EXPECT_FLOAT_EQ(3.0, result.back());
 }
 
-TEST(Layer, layer_with_linear_tf) {
-  Layer layer;
-  layer.SetSize(2);
-  layer.SetBiasNode(true);
-  layer.SetData({1.0, 1.0});
+TEST(TransferFunction, linear) {
+  const double input{0.5};
+  const double output{TransferFunction(input, TFtype::LINEAR)};
 
-  Weights weights;
-  weights.Resize(layer.InputSize(), 1);
-  weights.Reset(1.0);
-
-  auto result = FeedForwardLayer(layer, weights, TFtype::LINEAR);
-
-  EXPECT_FLOAT_EQ(3.0, result.back());
+  EXPECT_FLOAT_EQ(input, output);
 }
 
-TEST(Layer, layer_with_sigmoid_tf) {
+TEST(TransferFunction, sigmoud) {
+  const double input{0.5};
+  const double output{TransferFunction(input, TFtype::SIGMOID)};
+
+  EXPECT_FLOAT_EQ(1.0 / (1.0 + exp(-input)), output);
+}
+
+TEST(CalculateDeltaSum, igmoid) {
+  Layer layer;
+  layer.SetSize(1);
+  layer.SetInputData({1.235});
+  layer.SetOutputData({0.77});
+
+  Data target{0.0};
+
+  auto result = CalculateDeltaSum(layer, target, TFtype::SIGMOID);
+
+  EXPECT_FLOAT_EQ(-0.13439891, result.front());
+}
+
+TEST(CalculateDeltaSum, sigmoid) {
+  Layer layer;
+  layer.SetSize(1);
+  layer.SetInputData({1.235});
+  layer.SetOutputData({0.77});
+
+  Data target{0.0};
+
+  auto result = CalculateDeltaSum(layer, target, TFtype::SIGMOID);
+
+  EXPECT_FLOAT_EQ(-0.13439891, result.front());
+}
+
+TEST(CalculateDeltaWeights, sigmoid_layer_1x1) {
+  Layer layer;
+  layer.SetSize(1);
+  layer.SetOutputData({0.5});
+
+  Data delta_sum{-1.0};
+
+  auto result = CalculateDeltaWeights(layer, delta_sum);
+
+  EXPECT_FLOAT_EQ(-0.5, result(0, 0));
+}
+
+TEST(CalculateDeltaWeights, sigmoid_layer_5x1) {
+  Layer layer;
+  layer.SetSize(5);
+  layer.SetOutputData({0.5, 0.5, 0.5, 0.5, 0.5});
+
+  Data delta_sum{-1.0};
+
+  auto result = CalculateDeltaWeights(layer, delta_sum);
+
+  for (size_t i{}; i < layer.OutputSize(); ++i) {
+    EXPECT_FLOAT_EQ(-0.5, result(i, 0));
+  }
+}
+
+TEST(CalculateDeltaWeights, sigmoid_layer_5x2) {
+  Layer layer;
+  layer.SetSize(5);
+  layer.SetOutputData({0.5, 0.5, 0.5, 0.5, 0.5});
+
+  Data delta_sum{-1.0, 1.0};
+
+  auto result = CalculateDeltaWeights(layer, delta_sum);
+
+  for (size_t i{}; i < layer.OutputSize(); ++i) {
+    EXPECT_FLOAT_EQ(-0.5, result(i, 0));
+    EXPECT_FLOAT_EQ(0.5, result(i, 1));
+  }
+}
+
+TEST(BackPropagate, sigmoid_layer_1x1) {
   Layer layer;
   layer.SetSize(2);
-  layer.SetBiasNode(true);
-  layer.SetData({1.0, 1.0});
-
+  layer.SetOutputData({0.5, 1.0});
   Weights weights;
-  weights.Resize(layer.InputSize(), 1);
+  weights.Resize(2, 1);
   weights.Reset(1.0);
 
-  auto result = FeedForwardLayer(layer, weights, TFtype::SIGMOID);
+  const auto next_layer_data = FeedForwardLayer(layer, weights);
 
-  EXPECT_FLOAT_EQ(1.0 / (1.0 + exp(-3.0)), result.back());
+  Layer out_layer;
+  out_layer.SetSize(1);
+  out_layer.SetInputData(next_layer_data);
+  out_layer.SetOutputData(TransferFunction(next_layer_data, TFtype::SIGMOID));
+
+  Data target{0.0};
+  const auto error = CalculateError(out_layer.GetData(), target);
+
+  const auto delta_sum = CalculateDeltaSum(out_layer, target, TFtype::SIGMOID);
+
+  const auto delta_weights = CalculateDeltaWeights(layer, delta_sum);
+
+  Weights weights_opt;
+  weights_opt.Resize(2, 1);
+  for (size_t i{}; i < weights_opt.Ninput() * weights_opt.Noutput(); ++i) {
+    weights_opt(i) = weights(i) + 0.5 * delta_weights(i);
+  }
+
+  const auto next_layer_data_opt = FeedForwardLayer(layer, weights_opt);
+  Layer out_layer_opt;
+  out_layer_opt.SetSize(1);
+  out_layer_opt.SetInputData(next_layer_data_opt);
+  out_layer_opt.SetOutputData(TransferFunction(next_layer_data_opt, TFtype::SIGMOID));
+  const auto error_opt = CalculateError(out_layer_opt.GetData(), target);
+
+  EXPECT_LT(error_opt, error);
 }
 
 TEST(Network, set_layout) {
@@ -265,6 +354,82 @@ TEST(Network, feed_forward_2x2x1_1_with_bias) {
   const auto output = network.GetOutput();
 
   EXPECT_FLOAT_EQ(7.0, output.front());
+}
+
+TEST(Network, back_propagate_2x1) {
+  Network network;
+  network.SetLayout({2, 1});
+  network.ResetWeights(1.0);
+  network.SetInput({0.5, 1.0});
+
+  Data target{0.0};
+
+  network.FeedForward();
+  const double error = network.GetError(target);
+
+  network.BackPropagate(target);
+
+  network.FeedForward();
+  const double error_opt = network.GetError(target);
+
+  EXPECT_LT(error_opt, error);
+}
+
+TEST(Network, back_propagate_2x2) {
+  Network network;
+  network.SetLayout({2, 2});
+  network.ResetWeights(1.0);
+  network.SetInput({0.5, 1.0});
+
+  Data target{0.0, 0.0};
+
+  network.FeedForward();
+  const double error = network.GetError(target);
+
+  network.BackPropagate(target);
+
+  network.FeedForward();
+  const double error_opt = network.GetError(target);
+
+  EXPECT_LT(error_opt, error);
+}
+
+TEST(Network, back_propagate_1x1x1) {
+  Network network;
+  network.SetLayout({1, 1, 1});
+  network.ResetWeights(1.0);
+  network.SetInput({0.5});
+
+  Data target{0.0};
+
+  network.FeedForward();
+  const double error = network.GetError(target);
+
+  network.BackPropagate(target);
+
+  network.FeedForward();
+  const double error_opt = network.GetError(target);
+
+  EXPECT_LT(error_opt, error);
+}
+
+TEST(Network, back_propagate_2x2x1) {
+  Network network;
+  network.SetLayout({2, 2, 1});
+  network.ResetWeights(1.0);
+  network.SetInput({0.5, 1.0});
+
+  Data target{0.0};
+
+  network.FeedForward();
+  const double error = network.GetError(target);
+
+  network.BackPropagate(target);
+
+  network.FeedForward();
+  const double error_opt = network.GetError(target);
+
+  EXPECT_LT(error_opt, error);
 }
 
 int main(int argc, char** argv) {

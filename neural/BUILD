@@ -38,3 +38,15 @@ cc_binary(
     copts = BUILD_COPTS,
     visibility = ["//visibility:public"],
 )
+
+cc_binary(
+    name = "neural_main",
+    srcs = [
+        "neural_main.cpp",
+    ],
+    copts = BUILD_COPTS,
+    visibility = ["//visibility:public"],
+    deps = [
+        "//neural",
+    ],
+)
