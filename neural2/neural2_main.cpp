@@ -44,16 +44,16 @@ double PrintErrors(Network<TF>& network) {
 }
 
 int main() {
-  Network<Tanh> network;
-  network.SetLayout({2, 5, 5,1}, false);
+  Network<Relu> network;
+  network.SetLayout({2, 500, 500,1}, false);
   network.RandomizeWeights();
-  network.SetLearnFactor(0.1);
+  network.SetLearnFactor(0.5);
 
   // PrintWeights(network.GetWeights());
 
   double error = PrintErrors(network);
   int n{};
-  while (error > 0.0001) {
+  while (error > 0.1) {
   // while (n < 100'000) {
     network.SetInput({0.0, 0.0});
     network.FeedForward();
@@ -76,7 +76,7 @@ int main() {
     network.AddWeights(w3);
     network.AddWeights(w4);
 
-    if (++n % 10 == 0) {
+    if (++n % 1 == 0) {
       cout << "Run: " << n << endl;
       error = PrintErrors(network);
     }

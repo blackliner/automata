@@ -21,9 +21,7 @@ git_repository(
 )
 
 # needed packages
-# sudo apt install mesa-common-dev
 # sudo apt install libpng-dev
-# sudo apt install libpthread-stubs0-dev
 # sudo apt install libgl1-mesa-dev
 
 new_local_repository(

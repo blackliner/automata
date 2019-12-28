@@ -185,7 +185,7 @@ struct Sigmoid {
 };
 
 struct Relu {
-  static constexpr double kLeek{0.001};
+  static constexpr double kLeek{0.1};
 
   static constexpr double TransferFunction(double value) noexcept {
     return value >= 0.0 ? value : kLeek * value;
@@ -302,9 +302,17 @@ Weights CalculateDeltaWeights(const Layer& layer, const Data& delta_sum) {
   Weights result;
   result.Resize(layer.OutputSize(), delta_sum.size());
 
+  double input_sum{};
   for (size_t node_n{}; node_n < layer.OutputSize(); ++node_n) {
+    input_sum += layer.GetData(node_n);
     for (size_t output_n{}; output_n < delta_sum.size(); ++output_n) {
       result(node_n, output_n) = delta_sum[output_n] * layer.GetData(node_n);
+    }
+  }
+
+  if (input_sum > 0.0 || input_sum < 0.0) {
+    for (size_t i{}; i < result.Size(); ++i) {
+      result(i) /= input_sum;
     }
   }
 
@@ -434,7 +442,7 @@ class Network {
   }
 
  private:
-  double m_learn_factor{0.5};
+  double m_learn_factor{1.0};
   Layout m_layout;
 
   std::vector<Weights> m_weights;
