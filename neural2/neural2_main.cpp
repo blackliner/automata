@@ -1,5 +1,6 @@
 #include <iomanip>
 #include <iostream>
+#include <chrono>
 #include "neural2.h"
 
 using namespace std;
@@ -44,17 +45,20 @@ double PrintErrors(Network<TF>& network) {
 }
 
 int main() {
-  Network<Relu> network;
-  network.SetLayout({2, 500, 500,1}, false);
+  Network<Tanh> network;
+  network.SetLayout({2, 100, 100, 1}, false);
   network.RandomizeWeights();
-  network.SetLearnFactor(0.5);
+  network.SetLearnFactor(1.0 / (100));
 
   // PrintWeights(network.GetWeights());
 
   double error = PrintErrors(network);
   int n{};
-  while (error > 0.1) {
-  // while (n < 100'000) {
+
+  auto start = std::chrono::high_resolution_clock::now();
+
+  // while (error > 0.001) {
+    while (n < 10'000) {
     network.SetInput({0.0, 0.0});
     network.FeedForward();
     const auto w1 = network.BackPropagate({0.0});
@@ -76,11 +80,22 @@ int main() {
     network.AddWeights(w3);
     network.AddWeights(w4);
 
-    if (++n % 1 == 0) {
+    if (++n % 1000 == 0) {
       cout << "Run: " << n << endl;
       error = PrintErrors(network);
     }
   }
+
+  auto finish = std::chrono::high_resolution_clock::now();
+
+
+  cout << "Run: " << n << endl;
+  PrintErrors(network);
+
+  
+  std::chrono::duration<double> elapsed = finish - start;
+
+  std::cout << endl << "Elapsed time: " << elapsed.count() << " s" << endl;
 
   // PrintWeights(network.GetWeights());
 

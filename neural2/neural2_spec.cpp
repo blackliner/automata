@@ -160,7 +160,7 @@ TEST(CalculateDeltaWeights, sigmoid_layer_1x1) {
 
   auto result = CalculateDeltaWeights(layer, delta_sum);
 
-  EXPECT_FLOAT_EQ(-1.0, result(0, 0));
+  EXPECT_FLOAT_EQ(-0.5, result(0, 0));
 }
 
 TEST(CalculateDeltaWeights, sigmoid_layer_5x1) {
@@ -173,7 +173,7 @@ TEST(CalculateDeltaWeights, sigmoid_layer_5x1) {
   auto result = CalculateDeltaWeights(layer, delta_sum);
 
   for (size_t i{}; i < layer.OutputSize(); ++i) {
-    EXPECT_FLOAT_EQ(delta_sum[0] / layer.OutputSize(), result(i, 0));
+    EXPECT_FLOAT_EQ(-0.5, result(i, 0));
   }
 }
 
@@ -187,8 +187,8 @@ TEST(CalculateDeltaWeights, sigmoid_layer_5x2) {
   auto result = CalculateDeltaWeights(layer, delta_sum);
 
   for (size_t i{}; i < layer.OutputSize(); ++i) {
-    EXPECT_FLOAT_EQ(delta_sum[0] / layer.OutputSize(), result(i, 0));
-    EXPECT_FLOAT_EQ(delta_sum[1] / layer.OutputSize(), result(i, 1));
+    EXPECT_FLOAT_EQ(-0.5, result(i, 0));
+    EXPECT_FLOAT_EQ(0.5, result(i, 1));
   }
 }
 
@@ -367,7 +367,7 @@ TEST(Network, back_propagate_2x1) {
       weight_sum += weight(i);
     }
   }
-  EXPECT_FLOAT_EQ(-1.5, weight_sum);
+  EXPECT_FLOAT_EQ(-2.25, weight_sum);
 
   network.FeedForward();
   const double error_opt = network.GetError(target);
