@@ -231,7 +231,7 @@ Data CalculateDeltaSum(const Layer& layer, const Data& target) {
 template <typename TF>
 Data CalcHiddenDeltaSum(const Layer& layer, const Weights& weight, const Data& delta_sum) {
   Data result;
-  result.resize(weight.Ninput());
+  result.resize(layer.InputSize());
 
   for (size_t input_n{}; input_n < result.size(); ++input_n) {
     for (size_t output_n{}; output_n < weight.Noutput(); ++output_n) {
@@ -284,7 +284,9 @@ class Network {
     m_weights.resize(required_weights);
 
     for (size_t n_weight{}; n_weight < required_weights; ++n_weight) {
-      m_weights[n_weight].Resize(m_layers[n_weight].OutputSize(), m_layers[n_weight + 1].InputSize());
+      const auto weight_in_size = m_layers[n_weight].OutputSize();
+      const auto weight_out_size = m_layers[n_weight + 1].InputSize();
+      m_weights[n_weight].Resize(weight_in_size, weight_out_size);
     }
   }
 

@@ -1,6 +1,6 @@
 build -c dbg --copt=-fdiagnostics-color=always
 test -c dbg
-run -c opt
+run -c dbg
 
 #--copt="-pg" --cxxopt="-pg" --linkopt="-pg"
 
