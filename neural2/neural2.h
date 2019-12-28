@@ -34,6 +34,37 @@ class Weights {
     return m_data[idx];
   }
 
+  Weights& operator=(Weights other) noexcept {
+    m_data = std::move(other.m_data);
+    m_columns = other.m_columns;
+    m_rows = other.m_rows;
+
+    return *this;
+  }
+
+  Weights& operator+=(const Weights& rhs) {
+    assert(m_columns == rhs.m_columns);
+    assert(m_rows == rhs.m_rows);
+
+    for (size_t i{}; i < m_data.size(); ++i) {
+      m_data[i] += rhs.m_data[i];
+    }
+    return *this;
+  }
+
+  Weights operator+(const Weights& rhs) {
+    assert(m_columns == rhs.m_columns);
+    assert(m_rows == rhs.m_rows);
+
+    Weights result;
+    result.Resize(m_columns, m_rows);
+
+    for (size_t i{}; i < m_data.size(); ++i) {
+      result.m_data[i] = m_data[i] + rhs.m_data[i];
+    }
+    return result;
+  }
+
   void Resize(size_t n_columns, size_t n_rows) {
     assert(n_rows * n_columns != 0);
     m_rows = n_rows;
@@ -100,6 +131,19 @@ class Layer {
     if (m_has_bias_node) {
       m_results.push_back(1.0);
     }
+  }
+
+  template <typename TF>
+  void RunTF() {
+    for (size_t i{}; i < m_sums.size(); ++i) {
+      m_results[i] = TF::TransferFunction(m_sums[i]);
+    }
+
+    if (m_has_bias_node) {
+      m_results.back() = 1.0;
+    }
+    // const auto tf_data = TF::TransferFunction(data);
+    // m_layers[layer_n + 1].SetOutputData(std::move(tf_data));
   }
 
   void SetInputData(Data data) {
@@ -237,15 +281,14 @@ struct Tanh {
 Data FeedForwardLayer(const Layer& layer, const Weights& weights) {
   assert(weights.Ninput() == layer.OutputSize());
 
-  Data return_data;
-  return_data.reserve(weights.Noutput());
+  Data return_data(weights.Noutput());
 
   for (size_t n_output{}; n_output < weights.Noutput(); ++n_output) {
     double sum{};
     for (size_t n_input{}; n_input < weights.Ninput(); ++n_input) {
       sum += layer.GetOutputData()[n_input] * weights(n_input, n_output);
     }
-    return_data.push_back(sum);
+    return_data[n_output] = sum;
   }
 
   return return_data;
@@ -302,21 +345,11 @@ Weights CalculateDeltaWeights(const Layer& layer, const Data& delta_sum) {
   Weights result;
   result.Resize(layer.OutputSize(), delta_sum.size());
 
-  // double input_sum{};
   for (size_t node_n{}; node_n < layer.OutputSize(); ++node_n) {
-    // input_sum += layer.GetData(node_n);
     for (size_t output_n{}; output_n < delta_sum.size(); ++output_n) {
-      // result(node_n, output_n) = delta_sum[output_n] * layer.GetData(node_n) / (layer.OutputSize()*layer.OutputSize());
       result(node_n, output_n) = delta_sum[output_n] * layer.GetData(node_n);
     }
   }
-
-  // if (input_sum > 0.0 || input_sum < 0.0) {
-  //   for (size_t i{}; i < result.Size(); ++i) {
-  //     result(i) /= input_sum;
-  //   }
-  // }
-
   return result;
 }
 
@@ -388,13 +421,16 @@ class Network {
       const auto data = FeedForwardLayer(m_layers[layer_n], m_weights[layer_n]);
       m_layers[layer_n + 1].SetInputData(data);
 
-      const auto tf_data = TF::TransferFunction(data);
-      m_layers[layer_n + 1].SetOutputData(tf_data);
+      m_layers[layer_n + 1].RunTF<TF>();
+      // TODO not eally faster...
+      // const auto tf_data = TF::TransferFunction(data);
+      // m_layers[layer_n + 1].SetOutputData(std::move(tf_data));
     }
   }
 
   std::vector<Weights> BackPropagate(const Data& target) {
-    auto delta_weights{m_weights};
+    std::vector<Weights> delta_weights;
+    delta_weights.resize(m_weights.size());
 
     Data delta_sum;
     for (size_t layer_n = m_layers.size() - 1; layer_n > 0; --layer_n) {
