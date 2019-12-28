@@ -184,6 +184,56 @@ struct Sigmoid {
   }
 };
 
+struct Relu {
+  static constexpr double kLeek{0.001};
+
+  static constexpr double TransferFunction(double value) noexcept {
+    return value >= 0.0 ? value : kLeek * value;
+  }
+
+  static Data TransferFunction(Data data) noexcept {
+    for (size_t i{}; i < data.size(); ++i) {
+      data[i] = TransferFunction(data[i]);
+    }
+    return data;
+  }
+
+  static constexpr double InverseTransferFunction(double value) noexcept {
+    return value >= 0.0 ? 1.0 : kLeek;
+  }
+
+  static Data InverseTransferFunction(Data data) noexcept {
+    for (size_t i{}; i < data.size(); ++i) {
+      data[i] = InverseTransferFunction(data[i]);
+    }
+    return data;
+  }
+};
+
+struct Tanh {
+  static constexpr double TransferFunction(double value) noexcept {
+    return 2.0 * Sigmoid::TransferFunction(value) - 1.0;
+  }
+
+  static Data TransferFunction(Data data) noexcept {
+    for (size_t i{}; i < data.size(); ++i) {
+      data[i] = TransferFunction(data[i]);
+    }
+    return data;
+  }
+
+  static constexpr double InverseTransferFunction(double value) noexcept {
+    return 2.0 * Sigmoid::InverseTransferFunction(value);
+  }
+
+  static Data InverseTransferFunction(Data data) noexcept {
+    for (size_t i{}; i < data.size(); ++i) {
+      data[i] = InverseTransferFunction(data[i]);
+    }
+    return data;
+  }
+};
+
 Data FeedForwardLayer(const Layer& layer, const Weights& weights) {
   assert(weights.Ninput() == layer.OutputSize());
 
@@ -219,9 +269,11 @@ Data Dot(const Data& lhs, const Data& rhs) {
   return result;
 }
 
+// This fcn only serves for the calculation of the output layer
 template <typename TF>
 Data CalculateDeltaSum(const Layer& layer, const Data& target) {
-  const auto delta = Subtract(target, layer.GetOutputData());
+  // const auto delta = Subtract(target, layer.GetOutputData()); // do not use output, since no tf used here
+  const auto delta = Subtract(target, layer.GetInputData());
   const auto derivative = TF::InverseTransferFunction(layer.GetInputData());
   const auto delta_sum = Dot(derivative, delta);
 
@@ -305,7 +357,9 @@ class Network {
 
   const Data& GetOutput() const {
     assert(!m_layers.empty());
-    return m_layers.back().GetOutputData();
+    // return m_layers.back().GetOutputData();
+    // try input data, since output layer usually has no need for a transferfunction
+    return m_layers.back().GetInputData();
   }
 
   void ResetWeights(double new_value = 0.0) {
@@ -330,7 +384,7 @@ class Network {
     }
   }
 
-  void BackPropagate(const Data& target) {
+  std::vector<Weights> BackPropagate(const Data& target) {
     auto delta_weights{m_weights};
 
     Data delta_sum;
@@ -345,9 +399,24 @@ class Network {
       delta_weights[layer_n - 1] = CalculateDeltaWeights(m_layers[layer_n - 1], delta_sum);
     }
 
-    for (size_t weight_n{}; weight_n < m_weights.size(); ++weight_n) {
-      for (size_t i{}; i < m_weights[weight_n].Ninput() * m_weights[weight_n].Noutput(); ++i) {
-        m_weights[weight_n](i) = m_weights[weight_n](i) + m_learn_factor * delta_weights[weight_n](i);
+    // for (size_t weight_n{}; weight_n < m_weights.size(); ++weight_n) {
+    //   for (size_t i{}; i < m_weights[weight_n].Ninput() * m_weights[weight_n].Noutput(); ++i) {
+    //     m_weights[weight_n](i) = m_weights[weight_n](i) + m_learn_factor * delta_weights[weight_n](i);
+    //   }
+    // }
+
+    return delta_weights;
+  }
+
+  void AddWeights(const std::vector<Weights>& weights) {
+    assert(m_weights.size() == weights.size());
+    for (size_t i{}; i < m_weights.size(); ++i) {
+      assert(m_weights[i].Size() == weights[i].Size());
+    }
+
+    for (size_t i{}; i < m_weights.size(); ++i) {
+      for (size_t j{}; j < m_weights[i].Size(); ++j) {
+        m_weights[i](j) += m_learn_factor * weights[i](j);
       }
     }
   }

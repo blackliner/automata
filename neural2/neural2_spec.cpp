@@ -131,7 +131,7 @@ TEST(TransferFunction, linear) {
   EXPECT_FLOAT_EQ(input, output);
 }
 
-TEST(TransferFunction, sigmoud) {
+TEST(TransferFunction, sigmoid) {
   const double input{0.5};
   const double output{Sigmoid::TransferFunction(input)};
 
@@ -148,7 +148,7 @@ TEST(CalculateDeltaSum, sigmoid) {
 
   auto result = CalculateDeltaSum<Sigmoid>(layer, target);
 
-  EXPECT_FLOAT_EQ(-0.13439891, result.front());
+  EXPECT_FLOAT_EQ(-0.21556188, result.front());
 }
 
 TEST(CalculateDeltaWeights, sigmoid_layer_1x1) {
@@ -356,7 +356,8 @@ TEST(Network, back_propagate_2x1) {
   network.FeedForward();
   const double error = network.GetError(target);
 
-  network.BackPropagate(target);
+  const auto delta_weights = network.BackPropagate(target);
+  network.AddWeights(delta_weights);
 
   network.FeedForward();
   const double error_opt = network.GetError(target);
@@ -375,7 +376,8 @@ TEST(Network, back_propagate_2x2) {
   network.FeedForward();
   const double error = network.GetError(target);
 
-  network.BackPropagate(target);
+  const auto delta_weights = network.BackPropagate(target);
+  network.AddWeights(delta_weights);
 
   network.FeedForward();
   const double error_opt = network.GetError(target);
@@ -394,7 +396,8 @@ TEST(Network, back_propagate_1x1x1) {
   network.FeedForward();
   const double error = network.GetError(target);
 
-  network.BackPropagate(target);
+  const auto delta_weights = network.BackPropagate(target);
+  network.AddWeights(delta_weights);
 
   network.FeedForward();
   const double error_opt = network.GetError(target);
@@ -413,7 +416,8 @@ TEST(Network, back_propagate_2x2x1) {
   network.FeedForward();
   const double error = network.GetError(target);
 
-  network.BackPropagate(target);
+  const auto delta_weights = network.BackPropagate(target);
+  network.AddWeights(delta_weights);
 
   network.FeedForward();
   const double error_opt = network.GetError(target);
@@ -445,7 +449,8 @@ TEST(Network, back_propagate_2x3x1_with_weights) {
   network.FeedForward();
   const double error = network.GetError(target);
 
-  network.BackPropagate(target);
+  const auto delta_weights = network.BackPropagate(target);
+  network.AddWeights(delta_weights);
 
   network.FeedForward();
   const double error_opt = network.GetError(target);
@@ -473,13 +478,15 @@ TEST(Network, back_propagate_2x1_with_bias) {
   network.SetLayout({2, 1}, true);
   network.ResetWeights(1.0);
   network.SetInput({0.5, 1.0});
+  network.SetLearnFactor(0.1);
 
   Data target{0.0};
 
   network.FeedForward();
   const double error = network.GetError(target);
 
-  network.BackPropagate(target);
+  const auto delta_weights = network.BackPropagate(target);
+  network.AddWeights(delta_weights);
 
   network.FeedForward();
   const double error_opt = network.GetError(target);
@@ -498,7 +505,8 @@ TEST(Network, back_propagate_2x1_with_bias_sigmoid) {
   network.FeedForward();
   const double error = network.GetError(target);
 
-  network.BackPropagate(target);
+  const auto delta_weights = network.BackPropagate(target);
+  network.AddWeights(delta_weights);
 
   network.FeedForward();
   const double error_opt = network.GetError(target);

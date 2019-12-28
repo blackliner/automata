@@ -44,40 +44,45 @@ double PrintErrors(Network<TF>& network) {
 }
 
 int main() {
-  Network<Sigmoid> network;
-  network.SetLayout({2,4, 1,1}, false);
+  Network<Tanh> network;
+  network.SetLayout({2, 5, 5,1}, false);
   network.RandomizeWeights();
-  network.SetLearnFactor(0.9);
-  
-  PrintWeights(network.GetWeights());
+  network.SetLearnFactor(0.1);
+
+  // PrintWeights(network.GetWeights());
 
   double error = PrintErrors(network);
   int n{};
-  // while (error > 0.0001) {
-  while (n < 10'000) {
+  while (error > 0.0001) {
+  // while (n < 100'000) {
     network.SetInput({0.0, 0.0});
     network.FeedForward();
-    network.BackPropagate({0.0});
+    const auto w1 = network.BackPropagate({0.0});
 
     network.SetInput({0.0, 1.0});
     network.FeedForward();
-    network.BackPropagate({1.0});
+    const auto w2 = network.BackPropagate({1.0});
 
     network.SetInput({1.0, 0.0});
     network.FeedForward();
-    network.BackPropagate({1.0});
+    const auto w3 = network.BackPropagate({1.0});
 
     network.SetInput({1.0, 1.0});
     network.FeedForward();
-    network.BackPropagate({0.0});
+    const auto w4 = network.BackPropagate({0.0});
 
-    if (++n % 1000 == 0) {
+    network.AddWeights(w1);
+    network.AddWeights(w2);
+    network.AddWeights(w3);
+    network.AddWeights(w4);
+
+    if (++n % 10 == 0) {
       cout << "Run: " << n << endl;
       error = PrintErrors(network);
     }
   }
 
-  PrintWeights(network.GetWeights());
+  // PrintWeights(network.GetWeights());
 
   return 0;
 }
