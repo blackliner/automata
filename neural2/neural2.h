@@ -15,26 +15,56 @@ double CalculateError(const Data& lhs, const Data& rhs) {
   return error;
 }
 
-class Weights {
+template <typename T>
+double CalculateError(const Matrix_2d<T>& lhs, const Matrix_2d<T>& rhs) {
+  assert(lhs.Size() == rhs.Size());
+  double error{};
+
+  for (size_t i{}; i < lhs.Size(); ++i) {
+    error += (lhs(i) - rhs(i)) * (lhs(i) - rhs(i));
+  }
+
+  error *= 0.5;
+  return error;
+}
+
+template <typename T>
+class Matrix_2d {
   // x = columns = n_input, y = rows = n_output
  public:
-  double& operator()(size_t x, size_t y) noexcept {
+  std::vector<T>& operator() () noexcept {
+    return m_data;
+  }
+
+  const std::vector<const T>& operator() () noexcept const{
+    return m_data;
+  }
+
+  std::vector<T>& GetData() noexcept {
+    return m_data;
+  }
+
+  const std::vector<const T>& GetData() noexcept const{
+    return m_data;
+  }
+
+  T& operator()(size_t x, size_t y) noexcept {
     return m_data[x + y * m_columns];
   }
 
-  const double& operator()(size_t x, size_t y) const noexcept {
+  const T& operator()(size_t x, size_t y) const noexcept {
     return m_data[x + y * m_columns];
   }
 
-  double& operator()(size_t idx) noexcept {
+  T& operator()(size_t idx) noexcept {
     return m_data[idx];
   }
 
-  const double& operator()(size_t idx) const noexcept {
+  const T& operator()(size_t idx) const noexcept {
     return m_data[idx];
   }
 
-  Weights& operator=(Weights other) noexcept {
+  Matrix_2d& operator=(Matrix_2d other) noexcept {
     m_data = std::move(other.m_data);
     m_columns = other.m_columns;
     m_rows = other.m_rows;
@@ -42,7 +72,7 @@ class Weights {
     return *this;
   }
 
-  Weights& operator+=(const Weights& rhs) {
+  Matrix_2d& operator+=(const Matrix_2d& rhs) {
     assert(m_columns == rhs.m_columns);
     assert(m_rows == rhs.m_rows);
 
@@ -52,11 +82,11 @@ class Weights {
     return *this;
   }
 
-  Weights operator+(const Weights& rhs) {
+  Matrix_2d operator+(const Matrix_2d& rhs) {
     assert(m_columns == rhs.m_columns);
     assert(m_rows == rhs.m_rows);
 
-    Weights result;
+    Matrix_2d result;
     result.Resize(m_columns, m_rows);
 
     for (size_t i{}; i < m_data.size(); ++i) {
@@ -72,7 +102,7 @@ class Weights {
     m_data.resize(n_rows * n_columns);
   }
 
-  void Reset(double new_value = 0.0) {
+  void Reset(T new_value = T{}) {
     for (double& value : m_data) {
       value = new_value;
     }
@@ -90,13 +120,13 @@ class Weights {
     return m_columns * m_rows;
   }
 
-  void SetWeights(std::initializer_list<double>&& new_data) {
+  void SetWeights(std::initializer_list<T>&& new_data) {
     m_data = std::move(new_data);
   }
 
   void Randomize() {
     for (auto& value : m_data) {
-      value = static_cast<double>(rand()) / RAND_MAX;
+      value = static_cast<T>(rand()) / RAND_MAX;
       value -= 0.5;
       value *= 2.0;
     }
@@ -105,8 +135,10 @@ class Weights {
  private:
   size_t m_columns{};
   size_t m_rows{};
-  Data m_data;
+  std::vector<T> m_data;
 };
+
+using Weights = Matrix_2d<double>;
 
 class Layer {
  public:
@@ -126,42 +158,40 @@ class Layer {
   void SetOutputData(Data data) {
     assert(m_size == data.size());
 
-    m_results = std::move(data);
+    m_results() = std::move(data);
+
+    if (m_has_bias_node) {
+      m_results().push_back(1.0);
+    }
+  }
+
+  template <typename TF>
+  void RunTF() {
+    m_results() = TF::TransferFunction(m_sums());
 
     if (m_has_bias_node) {
       m_results.push_back(1.0);
     }
   }
 
-  template <typename TF>
-  void RunTF() {
-    for (size_t i{}; i < m_sums.size(); ++i) {
-      m_results[i] = TF::TransferFunction(m_sums[i]);
-    }
-
-    if (m_has_bias_node) {
-      m_results.back() = 1.0;
-    }
-    // const auto tf_data = TF::TransferFunction(data);
-    // m_layers[layer_n + 1].SetOutputData(std::move(tf_data));
-  }
-
   void SetInputData(Data data) {
     assert(m_size == data.size());
 
-    m_sums = std::move(data);
+    m_sums() = std::move(data);
   }
 
   const Data& GetOutputData() const noexcept {
-    return m_results;
+    return m_results.GetData();
   }
 
   double GetData(size_t idx) const noexcept {
-    return m_results[idx];
+    return m_results.GetData()[idx];
   }
 
   const Data& GetInputData() const noexcept {
-    return m_sums;
+    return m_sums.
+    
+    return m_sums.GetData();
   }
 
   void SetBiasNode(bool new_value) {
@@ -170,15 +200,15 @@ class Layer {
   }
 
  private:
-  Data m_sums;  // m sums has no entry for the bias value!!
-  Data m_results;
+  Matrix_2d<double> m_sums;  // m sums has no entry for the bias value!!
+  Matrix_2d<double> m_results;
 
   bool m_has_bias_node{};
   size_t m_size{};
 
   void Resize() {
-    m_sums.resize(InputSize());
-    m_results.resize(OutputSize());
+    m_sums.Resize(1u, InputSize());
+    m_results.Resize(1u, OutputSize());
   }
 };
 
@@ -284,11 +314,9 @@ Data FeedForwardLayer(const Layer& layer, const Weights& weights) {
   Data return_data(weights.Noutput());
 
   for (size_t n_output{}; n_output < weights.Noutput(); ++n_output) {
-    double sum{};
     for (size_t n_input{}; n_input < weights.Ninput(); ++n_input) {
-      sum += layer.GetOutputData()[n_input] * weights(n_input, n_output);
+      return_data[n_output] += layer.GetOutputData()[n_input] * weights(n_input, n_output);
     }
-    return_data[n_output] = sum;
   }
 
   return return_data;
@@ -399,8 +427,6 @@ class Network {
 
   const Data& GetOutput() const {
     assert(!m_layers.empty());
-    // return m_layers.back().GetOutputData();
-    // try input data, since output layer usually has no need for a transferfunction
     return m_layers.back().GetInputData();
   }
 
@@ -443,12 +469,6 @@ class Network {
 
       delta_weights[layer_n - 1] = CalculateDeltaWeights(m_layers[layer_n - 1], delta_sum);
     }
-
-    // for (size_t weight_n{}; weight_n < m_weights.size(); ++weight_n) {
-    //   for (size_t i{}; i < m_weights[weight_n].Ninput() * m_weights[weight_n].Noutput(); ++i) {
-    //     m_weights[weight_n](i) = m_weights[weight_n](i) + m_learn_factor * delta_weights[weight_n](i);
-    //   }
-    // }
 
     return delta_weights;
   }
