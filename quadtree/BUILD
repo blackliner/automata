@@ -16,5 +16,5 @@ cc_library(
     srcs = ["quad_tree.h"],
     copts = BUILD_COPTS,
     visibility = ["//visibility:public"],
-    deps = ["//:vector2d"],
+    deps = ["//lib:vector2d"],
 )

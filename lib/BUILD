@@ -1,0 +1,82 @@
+load("//:variables.bzl", "BUILD_COPTS")
+
+package(default_visibility = ["//visibility:public"])
+
+cc_library(
+    name = "renderer",
+    srcs = ["Renderer.h"],
+    copts = BUILD_COPTS,
+    deps = ["vector2d"],
+)
+
+cc_library(
+    name = "matrix2d",
+    srcs = ["matrix2d.h"],
+    copts = BUILD_COPTS,
+)
+
+cc_library(
+    name = "vehicle",
+    srcs = ["Vehicle.cpp"],
+    hdrs = ["Vehicle.h"],
+    copts = BUILD_COPTS + ["-Ilib"],
+    deps = [
+        "path_segment",
+        "perlin",
+        "renderer",
+        "weapons",
+    ],
+)
+
+cc_library(
+    name = "olc_pixel_game_engine",
+    hdrs = ["olcPixelGameEngine.h"],
+    copts = BUILD_COPTS,
+    deps = [
+        #"@system_libs//:all", # would work if there was no libpthread_db.so :-(
+        "@system_libs//:pthread",
+        "@system_libs//:x11",
+        "@system_libs//:png",
+        "@system_libs//:gl",
+    ],
+)
+
+cc_library(
+    name = "vector2d",
+    hdrs = ["Vector2D.h"],
+    copts = BUILD_COPTS,  # + ["-Ilib"],
+)
+
+cc_library(
+    name = "weapons",
+    srcs = ["Weapons.cpp"],
+    hdrs = ["Weapons.h"],
+    copts = BUILD_COPTS + ["-Ilib"],
+    deps = ["vector2d"],
+)
+
+cc_library(
+    name = "path_segment",
+    hdrs = ["PathSegment.h"],
+    copts = BUILD_COPTS + ["-Ilib"],
+    deps = ["vector2d"],
+)
+
+cc_library(
+    name = "perlin",
+    hdrs = ["Perlin.h"],
+    copts = BUILD_COPTS,
+)
+
+cc_library(
+    name = "hashtable",
+    hdrs = ["hashtable.h"],
+    copts = BUILD_COPTS,
+    deps = ["hash"],
+)
+
+cc_library(
+    name = "hash",
+    hdrs = ["hash.h"],
+    copts = BUILD_COPTS,
+)
