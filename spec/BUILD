@@ -6,7 +6,7 @@ cc_test(
     copts = TEST_COPTS + ["-Ilib"],
     visibility = ["//visibility:public"],
     deps = [
-        "//:hashtable",
+        "//lib:hashtable",
         "@com_google_googletest//:gtest",
     ],
 )

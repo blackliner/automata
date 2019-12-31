@@ -28,7 +28,7 @@ cc_library(
     srcs = ["neural2.h"],
     copts = BUILD_COPTS,
     visibility = ["//visibility:public"],
-    deps = ["//:matrix2d"],
+    deps = ["//lib:matrix2d"],
 )
 
 cc_binary(

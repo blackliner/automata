@@ -1,6 +1,7 @@
 #include <chrono>
 #include <iomanip>
 #include <iostream>
+
 #include "neural2.h"
 
 using namespace std;

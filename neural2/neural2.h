@@ -4,15 +4,18 @@
 #include <cmath>
 #include <vector>
 
-#include "matrix2d.h"
+#include "lib/matrix2d.h"
 
-using Data = std::vector<double>;
+using Matrix = Matrix_2d<double>;
+using Weights = Matrix_2d<double>;
 
-double CalculateError(const Data& lhs, const Data& rhs) {
-  assert(lhs.size() == rhs.size());
+double CalculateError(const Matrix& lhs, const Matrix& rhs) {
+  assert(lhs.Ninput() == rhs.Ninput());
+  assert(lhs.Noutput() == rhs.Noutput());
+
   double error{};
-  for (size_t i{}; i < lhs.size(); ++i) {
-    error += 0.5 * (lhs[i] - rhs[i]) * (lhs[i] - rhs[i]);
+  for (size_t i{}; i < lhs.Size(); ++i) {
+    error += 0.5 * (lhs(i) - rhs(i)) * (lhs(i) - rhs(i));
   }
   return error;
 }
@@ -30,8 +33,6 @@ double CalculateError(const Matrix_2d<T>& lhs, const Matrix_2d<T>& rhs) {
   return error;
 }
 
-using Weights = Matrix_2d<double>;
-
 class Layer {
  public:
   void SetSize(size_t new_size) {
@@ -47,41 +48,44 @@ class Layer {
     return m_size + m_has_bias_node;
   }
 
-  void SetOutputData(Data data) {
-    assert(m_size == data.size());
+  void SetOutputData(Matrix data) {
+    assert(m_size == data.Size());
 
-    m_results() = std::move(data);
+    m_results = std::move(data);
 
     if (m_has_bias_node) {
-      m_results().push_back(1.0);
+      m_results.Resize(1u, m_size + 1);
+      m_results(m_size) = 1.0;
     }
   }
 
   template <typename TF>
   void RunTF() {
-    m_results() = TF::TransferFunction(m_sums());
+    m_results = TF::TransferFunction(m_sums);
 
     if (m_has_bias_node) {
-      m_results.push_back(1.0);
+      m_results.Resize(1u, m_size + 1);
+      m_results(m_size) = 1.0;
+      // m_results.WTF().push_back(1.0);
     }
   }
 
-  void SetInputData(Data data) {
-    assert(m_size == data.size());
+  void SetInputData(Matrix data) {
+    assert(m_size == data.Size());
 
-    m_sums() = std::move(data);
+    m_sums = std::move(data);
   }
 
-  const Data& GetOutputData() const noexcept {
-    return m_results.GetData();
+  const Matrix& GetOutputData() const noexcept {
+    return m_results;
   }
 
   double GetData(size_t idx) const noexcept {
-    return m_results.GetData()[idx];
+    return m_results(idx);
   }
 
-  const Data& GetInputData() const noexcept {
-    return m_sums.GetData();
+  const Matrix& GetInputData() const noexcept {
+    return m_sums;
   }
 
   void SetBiasNode(bool new_value) {
@@ -99,6 +103,10 @@ class Layer {
   void Resize() {
     m_sums.Resize(1u, InputSize());
     m_results.Resize(1u, OutputSize());
+
+    if (m_has_bias_node) {
+      m_results(1, OutputSize() - 1) = 1.0;
+    }
   }
 };
 
@@ -107,7 +115,7 @@ struct Linear {
     return value;
   }
 
-  static Data TransferFunction(const Data& data) noexcept {
+  static Matrix TransferFunction(const Matrix& data) noexcept {
     return data;
   }
 
@@ -115,9 +123,9 @@ struct Linear {
     return 1.0;
   }
 
-  static Data InverseTransferFunction(Data data) noexcept {
-    for (size_t i{}; i < data.size(); ++i) {
-      data[i] = InverseTransferFunction(data[i]);
+  static Matrix InverseTransferFunction(Matrix data) noexcept {
+    for (size_t i{}; i < data.Size(); ++i) {
+      data(i) = InverseTransferFunction(data(i));
     }
     return data;
   }
@@ -128,9 +136,9 @@ struct Sigmoid {
     return 1.0 / (1.0 + exp(-value));
   }
 
-  static Data TransferFunction(Data data) noexcept {
-    for (size_t i{}; i < data.size(); ++i) {
-      data[i] = TransferFunction(data[i]);
+  static Matrix TransferFunction(Matrix data) noexcept {
+    for (size_t i{}; i < data.Size(); ++i) {
+      data(i) = TransferFunction(data(i));
     }
     return data;
   }
@@ -140,9 +148,9 @@ struct Sigmoid {
     return tf_value * (1.0 - tf_value);
   }
 
-  static Data InverseTransferFunction(Data data) noexcept {
-    for (size_t i{}; i < data.size(); ++i) {
-      data[i] = InverseTransferFunction(data[i]);
+  static Matrix InverseTransferFunction(Matrix data) noexcept {
+    for (size_t i{}; i < data.Size(); ++i) {
+      data(i) = InverseTransferFunction(data(i));
     }
     return data;
   }
@@ -155,9 +163,9 @@ struct Relu {
     return value >= 0.0 ? value : kLeek * value;
   }
 
-  static Data TransferFunction(Data data) noexcept {
-    for (size_t i{}; i < data.size(); ++i) {
-      data[i] = TransferFunction(data[i]);
+  static Matrix TransferFunction(Matrix data) noexcept {
+    for (size_t i{}; i < data.Size(); ++i) {
+      data(i) = TransferFunction(data(i));
     }
     return data;
   }
@@ -166,9 +174,9 @@ struct Relu {
     return value >= 0.0 ? 1.0 : kLeek;
   }
 
-  static Data InverseTransferFunction(Data data) noexcept {
-    for (size_t i{}; i < data.size(); ++i) {
-      data[i] = InverseTransferFunction(data[i]);
+  static Matrix InverseTransferFunction(Matrix data) noexcept {
+    for (size_t i{}; i < data.Size(); ++i) {
+      data(i) = InverseTransferFunction(data(i));
     }
     return data;
   }
@@ -179,9 +187,9 @@ struct Tanh {
     return 2.0 * Sigmoid::TransferFunction(value) - 1.0;
   }
 
-  static Data TransferFunction(Data data) noexcept {
-    for (size_t i{}; i < data.size(); ++i) {
-      data[i] = TransferFunction(data[i]);
+  static Matrix TransferFunction(Matrix data) noexcept {
+    for (size_t i{}; i < data.Size(); ++i) {
+      data(i) = TransferFunction(data(i));
     }
     return data;
   }
@@ -190,82 +198,65 @@ struct Tanh {
     return 2.0 * Sigmoid::InverseTransferFunction(value);
   }
 
-  static Data InverseTransferFunction(Data data) noexcept {
-    for (size_t i{}; i < data.size(); ++i) {
-      data[i] = InverseTransferFunction(data[i]);
+  static Matrix InverseTransferFunction(Matrix data) noexcept {
+    for (size_t i{}; i < data.Size(); ++i) {
+      data(i) = InverseTransferFunction(data(i));
     }
     return data;
   }
 };
 
-Data FeedForwardLayer(const Layer& layer, const Weights& weights) {
+Matrix FeedForwardLayer(const Layer& layer, const Weights& weights) {
   assert(weights.Ninput() == layer.OutputSize());
 
-  Data return_data(weights.Noutput());
+  Matrix return_data;
+  return_data.Resize(1u, weights.Noutput());
 
   for (size_t n_output{}; n_output < weights.Noutput(); ++n_output) {
     for (size_t n_input{}; n_input < weights.Ninput(); ++n_input) {
-      return_data[n_output] += layer.GetOutputData()[n_input] * weights(n_input, n_output);
+      return_data(n_output) += layer.GetOutputData()(n_input) * weights(n_input, n_output);
     }
   }
 
   return return_data;
 }
 
-Data Subtract(const Data& lhs, const Data& rhs) {
-  assert(lhs.size() == rhs.size());
-  Data result(lhs.size());
-  for (size_t i{}; i < lhs.size(); ++i) {
-    result[i] = lhs[i] - rhs[i];
-  }
-  return result;
-}
-
-Data Dot(const Data& lhs, const Data& rhs) {
-  assert(lhs.size() == rhs.size());
-  Data result(lhs.size());
-  for (size_t i{}; i < lhs.size(); ++i) {
-    result[i] = lhs[i] * rhs[i];
-  }
-  return result;
-}
-
 // This fcn only serves for the calculation of the output layer
 template <typename TF>
-Data CalculateDeltaSum(const Layer& layer, const Data& target) {
-  // const auto delta = Subtract(target, layer.GetOutputData()); // do not use output, since no tf used here
-  const auto delta = Subtract(target, layer.GetInputData());
+Matrix CalculateDeltaSum(const Layer& layer, const Matrix& target) {
+  const auto delta = target - layer.GetInputData();
   const auto derivative = TF::InverseTransferFunction(layer.GetInputData());
-  const auto delta_sum = Dot(derivative, delta);
+  const auto delta_sum = derivative.Dot(delta);
 
   return delta_sum;
 }
 
 template <typename TF>
-Data CalcHiddenDeltaSum(const Layer& layer, const Weights& weight, const Data& delta_sum) {
-  Data result;
-  result.resize(layer.InputSize());
+Matrix CalcHiddenDeltaSum(const Layer& layer, const Weights& weight, const Matrix& delta_sum) {
+  Matrix result;
+  result.Resize(1u, layer.InputSize());
 
-  for (size_t input_n{}; input_n < result.size(); ++input_n) {
+  for (size_t input_n{}; input_n < result.Size(); ++input_n) {
     for (size_t output_n{}; output_n < weight.Noutput(); ++output_n) {
-      result[input_n] += weight(input_n, output_n) * delta_sum[output_n];
+      result(input_n) += weight(input_n, output_n) * delta_sum(output_n);
     }
   }
 
   const auto derivative = TF::InverseTransferFunction(layer.GetInputData());
 
-  result = Dot(derivative, result);
+  // result = Dot(derivative, result);
+  result = derivative.Dot(result);
 
   return result;
 }
 
-Weights CalculateDeltaWeights(const Layer& layer, const Data& delta_sum) {
+Weights CalculateDeltaWeights(const Layer& layer, const Matrix& delta_sum) {
   Weights result;
-  result.Resize(layer.OutputSize(), delta_sum.size());
+  result.Resize(layer.OutputSize(), delta_sum.Size());
 
   for (size_t node_n{}; node_n < layer.OutputSize(); ++node_n) {
-    for (size_t output_n{}; output_n < delta_sum.size(); ++output_n) {
-      result(node_n, output_n) = delta_sum[output_n] * layer.GetData(node_n);
+    for (size_t output_n{}; output_n < delta_sum.Size(); ++output_n) {
+      result(node_n, output_n) = delta_sum(output_n) * layer.GetData(node_n);
     }
   }
   return result;
@@ -285,8 +276,8 @@ class Network {
     m_layers.resize(layout.size());
 
     for (size_t i{}; i < m_layers.size(); ++i) {
-      m_layers[i].SetBiasNode(wiht_bias);
       m_layers[i].SetSize(layout[i]);
+      m_layers[i].SetBiasNode(wiht_bias);
     }
 
     // last layer does not need a bias node
@@ -310,12 +301,12 @@ class Network {
     return m_layout;
   }
 
-  void SetInput(const Data& data) {
+  void SetInput(const Matrix& data) {
     assert(!m_layers.empty());
     m_layers.front().SetOutputData(data);
   }
 
-  const Data& GetOutput() const {
+  const Matrix& GetOutput() const {
     assert(!m_layers.empty());
     return m_layers.back().GetInputData();
   }
@@ -344,11 +335,11 @@ class Network {
     }
   }
 
-  std::vector<Weights> BackPropagate(const Data& target) {
+  std::vector<Weights> BackPropagate(const Matrix& target) {
     std::vector<Weights> delta_weights;
     delta_weights.resize(m_weights.size());
 
-    Data delta_sum;
+    Matrix delta_sum;
     for (size_t layer_n = m_layers.size() - 1; layer_n > 0; --layer_n) {
       if (layer_n == m_layers.size() - 1)  // output layer!
       {
@@ -376,7 +367,7 @@ class Network {
     }
   }
 
-  constexpr double GetError(const Data& target) const {
+  constexpr double GetError(const Matrix& target) const {
     return CalculateError(GetOutput(), target);
   }
 

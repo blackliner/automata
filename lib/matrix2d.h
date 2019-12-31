@@ -4,22 +4,17 @@ template <typename T>
 class Matrix_2d {
   // x = columns = n_input, y = rows = n_output
  public:
-  std::vector<T>& operator()() noexcept {
-    return m_data;
+  Matrix_2d() = default;
+  Matrix_2d(std::initializer_list<T> data) : m_data(data), m_columns(1), m_rows(data.size()) {
   }
 
-  const std::vector<const T>& operator()() noexcept const {
-    return m_data;
-  }
+  Matrix_2d(const Matrix_2d& other) = default;
+  Matrix_2d& operator=(const Matrix_2d& other) = default;
 
-  std::vector<T>& GetData() noexcept {
-    return m_data;
-  }
+  Matrix_2d(Matrix_2d&& other) = default;
+  Matrix_2d& operator=(Matrix_2d&& other) = default;
 
-  const std::vector<const T>& GetData() noexcept const {
-    return m_data;
-  }
-
+  ~Matrix_2d() = default;
   T& operator()(size_t x, size_t y) noexcept {
     return m_data[x + y * m_columns];
   }
@@ -36,13 +31,13 @@ class Matrix_2d {
     return m_data[idx];
   }
 
-  Matrix_2d& operator=(Matrix_2d other) noexcept {
-    m_data = std::move(other.m_data);
-    m_columns = other.m_columns;
-    m_rows = other.m_rows;
+  //   Matrix_2d& operator=(Matrix_2d other) noexcept {
+  //     m_data = std::move(other.m_data);
+  //     m_columns = other.m_columns;
+  //     m_rows = other.m_rows;
 
-    return *this;
-  }
+  //     return *this;
+  //   }
 
   Matrix_2d& operator+=(const Matrix_2d& rhs) {
     assert(m_columns == rhs.m_columns);
@@ -64,6 +59,43 @@ class Matrix_2d {
     for (size_t i{}; i < m_data.size(); ++i) {
       result.m_data[i] = m_data[i] + rhs.m_data[i];
     }
+    return result;
+  }
+
+  Matrix_2d& operator-=(const Matrix_2d& rhs) {
+    assert(m_columns == rhs.m_columns);
+    assert(m_rows == rhs.m_rows);
+
+    for (size_t i{}; i < m_data.size(); ++i) {
+      m_data[i] -= rhs.m_data[i];
+    }
+    return *this;
+  }
+
+  Matrix_2d operator-(const Matrix_2d& rhs) const {
+    assert(m_columns == rhs.m_columns);
+    assert(m_rows == rhs.m_rows);
+
+    Matrix_2d result;
+    result.Resize(m_columns, m_rows);
+
+    for (size_t i{}; i < m_data.size(); ++i) {
+      result.m_data[i] = m_data[i] - rhs.m_data[i];
+    }
+    return result;
+  }
+
+  Matrix_2d Dot(const Matrix_2d& rhs) const {
+    assert(m_columns == rhs.m_columns);
+    assert(m_rows == rhs.m_rows);
+
+    Matrix_2d result;
+    result.Resize(m_columns, m_rows);
+
+    for (size_t i{}; i < Size(); ++i) {
+      result(i) = m_data[i] * rhs(i);
+    }
+
     return result;
   }
 
@@ -105,7 +137,8 @@ class Matrix_2d {
   }
 
  private:
+  std::vector<T> m_data;
+
   size_t m_columns{};
   size_t m_rows{};
-  std::vector<T> m_data;
 };
