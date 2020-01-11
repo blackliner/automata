@@ -6,6 +6,9 @@ jobs:
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@master
+    
+    - name: Install stuff
+      run: sudo apt-get update && sudo apt-get install libgl1-mesa-dev libsfml-dev libpng-dev
 
     - name: bazel build
       uses: ngalaiko/bazel-action/1.2.1@master

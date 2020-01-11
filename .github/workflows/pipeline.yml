@@ -1,0 +1,11 @@
+on: push
+name: Pipeline
+jobs:
+  checks:
+    name: run
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@master
+      
+    - name: Build docker and sourcecode
+      run: ./run_full_pipeline.sh
