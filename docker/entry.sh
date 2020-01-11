@@ -1,0 +1,6 @@
+cd
+cd workspace
+cd automata
+
+bazel build ...
+bazel test ...

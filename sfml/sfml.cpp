@@ -40,7 +40,11 @@ int main() {
 
     const auto p = sf::Mouse::getPosition();
 
-    shape.setPosition({p.x, p.y});
+    sf::Vector2f v;
+    v.x = p.x;
+    v.y = p.y;
+
+    shape.setPosition(v);
 
     window.clear();
     window.draw(shape);
