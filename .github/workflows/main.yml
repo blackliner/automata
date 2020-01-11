@@ -8,7 +8,7 @@ jobs:
     - uses: actions/checkout@master
     
     - name: Install stuff
-      run: apt-get update && apt-get install libgl1-mesa-dev libsfml-dev libpng-dev
+      run: sudo apt-get update && sudo apt-get install libgl1-mesa-dev libsfml-dev libpng-dev
 
     - name: bazel build
       uses: ngalaiko/bazel-action/1.2.1@master
