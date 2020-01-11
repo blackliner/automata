@@ -9,3 +9,5 @@ run -c dbg
 #--copt=-fdiagnostics-color=always
 
 #--cxxopt='-std=c++17'
+
+# bazel run --cxxopt='-march=native' --cxxopt='-O3' sfml

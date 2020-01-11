@@ -10,8 +10,8 @@
 #include "quad_tree.h"
 
 constexpr int fBlockWidth = 1;
-constexpr int nWorldWidth = 160 * 10;
-constexpr int nWorldHeight = 50 * 10;
+constexpr int nWorldWidth = 220 * 10;
+constexpr int nWorldHeight = 100 * 10;
 constexpr int nDisplayWidth = nWorldWidth * fBlockWidth;
 constexpr int nDisplayHeight = nWorldHeight * fBlockWidth;
 

@@ -47,7 +47,7 @@ double PrintErrors(Network<TF>& network) {
 
 int main() {
   Network<Tanh> network;
-  network.SetLayout({2, 100, 100, 1}, false);
+  network.SetLayout({2, 200, 200, 200, 200, 1}, false);
   network.RandomizeWeights();
   network.SetLearnFactor(1.0 / (100));
 

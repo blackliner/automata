@@ -149,7 +149,7 @@ bool Maze::OnUserUpdate(float fElapsedTime) {
     quad_tree.AddNode(&vehicle, p);
   }
 
-  DrawQuadTree(quad_tree);
+  // DrawQuadTree(quad_tree);
 
   SwapStates(vehicles);
 
