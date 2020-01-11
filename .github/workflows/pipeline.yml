@@ -5,5 +5,7 @@ jobs:
     name: run
     runs-on: ubuntu-latest
     steps:
+    - name: Checkout
+      uses: actions/checkout@v1
     - name: Build docker and sourcecode
       run: ./run_full_pipeline.sh
