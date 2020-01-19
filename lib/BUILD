@@ -19,7 +19,7 @@ cc_library(
     name = "vehicle",
     srcs = ["Vehicle.cpp"],
     hdrs = ["Vehicle.h"],
-    copts = BUILD_COPTS + ["-Ilib"],
+    copts = BUILD_COPTS,
     deps = [
         "path_segment",
         "perlin",
@@ -32,33 +32,32 @@ cc_library(
     name = "olc_pixel_game_engine",
     hdrs = ["olcPixelGameEngine.h"],
     copts = BUILD_COPTS,
-    deps = [
-        #"@system_libs//:all", # would work if there was no libpthread_db.so :-(
-        "@system_libs//:pthread",
-        "@system_libs//:x11",
-        "@system_libs//:png",
-        "@system_libs//:gl",
+    linkopts = [
+        "-lpthread",
+        "-lX11",
+        "-lpng",
+        "-lGL",
     ],
 )
 
 cc_library(
     name = "vector2d",
     hdrs = ["Vector2D.h"],
-    copts = BUILD_COPTS,  # + ["-Ilib"],
+    copts = BUILD_COPTS,
 )
 
 cc_library(
     name = "weapons",
     srcs = ["Weapons.cpp"],
     hdrs = ["Weapons.h"],
-    copts = BUILD_COPTS + ["-Ilib"],
+    copts = BUILD_COPTS,
     deps = ["vector2d"],
 )
 
 cc_library(
     name = "path_segment",
     hdrs = ["PathSegment.h"],
-    copts = BUILD_COPTS + ["-Ilib"],
+    copts = BUILD_COPTS,
     deps = ["vector2d"],
 )
 
