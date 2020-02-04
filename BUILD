@@ -13,14 +13,14 @@ cc_binary(
     copts = BUILD_COPTS + ["-Ilib"] + ["-Iquadtree"],
     deps = [
         "//lib:vehicle",
-        "//quadtree:quad_tree",
+        "//quadtree:quadtree",
         "//lib:olc_pixel_game_engine",
-        #"//lib:vector2d",
     ],
 )
 
 
 installer(
     name = "install",
-    data = [":auto"],
+    # data = ["quadtree"],
+    data = ["//quadtree:quadtree"],
 )
