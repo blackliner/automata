@@ -1,6 +1,6 @@
 #include "gtest/gtest.h"
 
-#include "quad_tree.h"
+#include "quadtree.h"
 
 TEST(QuadTree, instantiation) {
   EXPECT_NO_THROW(QuadTree<int>());
