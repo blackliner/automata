@@ -53,7 +53,7 @@ int main() {
 
   // PrintWeights(network.GetWeights());
 
-  double error = PrintErrors(network);
+  PrintErrors(network);
   int n{};
 
   auto start = std::chrono::high_resolution_clock::now();
@@ -83,7 +83,7 @@ int main() {
 
     if (++n % 1000 == 0) {
       cout << "Run: " << n << endl;
-      error = PrintErrors(network);
+      PrintErrors(network);
     }
   }
 
