@@ -1,4 +1,4 @@
-load("//:variables.bzl", "TEST_COPTS")
+load("//variables:variables.bzl", "TEST_COPTS")
 
 cc_test(
     name = "hashtablespec",

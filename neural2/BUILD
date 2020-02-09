@@ -1,4 +1,4 @@
-load("//:variables.bzl", "BUILD_COPTS", "TEST_COPTS")
+load("//variables:variables.bzl", "BUILD_COPTS", "TEST_COPTS")
 
 cc_test(
     name = "neural2_spec",

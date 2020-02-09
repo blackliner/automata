@@ -1,4 +1,4 @@
-load("//:variables.bzl", "BUILD_COPTS")
+load("//variables:variables.bzl", "BUILD_COPTS")
 
 package(default_visibility = ["//visibility:public"])
 

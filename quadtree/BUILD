@@ -1,4 +1,4 @@
-load("//:variables.bzl", "BUILD_COPTS", "TEST_COPTS")
+load("//variables:variables.bzl", "BUILD_COPTS", "TEST_COPTS")
 
 cc_test(
     name = "quadtree_spec",
@@ -6,7 +6,7 @@ cc_test(
     copts = TEST_COPTS + ["-Ilib"],
     visibility = ["//visibility:public"],
     deps = [
-        "//quadtree:quadtree",
+        "//quadtree",
         "@com_google_googletest//:gtest",
     ],
 )

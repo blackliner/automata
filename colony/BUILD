@@ -1,4 +1,4 @@
-load("//:variables.bzl", "TEST_COPTS", "BUILD_COPTS")
+load("//variables:variables.bzl", "BUILD_COPTS", "TEST_COPTS")
 
 cc_test(
     name = "colony_spec",
@@ -6,11 +6,10 @@ cc_test(
     copts = TEST_COPTS,
     visibility = ["//visibility:public"],
     deps = [
-        "//colony:colony",
+        "//colony",
         "@com_google_googletest//:gtest",
     ],
 )
-
 
 # cc_benchmark(
 cc_test(
@@ -19,14 +18,17 @@ cc_test(
     copts = TEST_COPTS,
     visibility = ["//visibility:public"],
     deps = [
-        "//colony:colony",
+        "//colony",
         "@com_google_benchmark//:benchmark",
     ],
 )
 
 cc_library(
     name = "colony",
-    srcs = ["colony.cpp", "colony.h"],
+    srcs = [
+        "colony.cpp",
+        "colony.h",
+    ],
     copts = BUILD_COPTS,
     visibility = ["//visibility:public"],
 )
