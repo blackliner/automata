@@ -3,9 +3,9 @@ pipeline {
     stages {
         stage('Stage 1') {
             steps {
-                echo 'Hello world!' 
-                echo $(ls)
-                echo $(pwd)
+                sh '''
+                   ./run_full_pipeline.sh
+                '''
             }
         }
     }
