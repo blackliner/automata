@@ -8,12 +8,12 @@ pipeline {
     stages {
         stage('Build docker image') {
             steps {
-                sh './docker/build.sh'
+                sh './docker/build.py'
             }
         }        
         stage('Build and test code') {
             steps {
-                sh './docker/docker_run.sh'
+                sh './docker/docker_run.py'
             }
         }
     }

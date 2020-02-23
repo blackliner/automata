@@ -1,3 +1,3 @@
-./docker/build.sh
-./docker/docker_run.sh
+./docker/build.py
+./docker/docker_run.py
 
