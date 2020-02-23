@@ -25,6 +25,7 @@ pipeline {
                     b: {
                         sh './docker/docker_run.py bazel test ...'
                     }
+                )
             }
         }
         // stage('Test') {
