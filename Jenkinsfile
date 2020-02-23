@@ -18,13 +18,19 @@ pipeline {
         }
         stage('Build') {
             steps {
-                sh './docker/docker_run.py bazel build ...'
+                parallel(
+                    a: {
+                        sh './docker/docker_run.py bazel build ...'
+                    },
+                    b: {
+                        sh './docker/docker_run.py bazel test ...'
+                    }
             }
         }
-        stage('Test') {
-            steps {
-                sh './docker/docker_run.py bazel test ...'
-            }
-        }
+        // stage('Test') {
+        //     steps {
+        //         sh './docker/docker_run.py bazel test ...'
+        //     }
+        // }
     }
 }
