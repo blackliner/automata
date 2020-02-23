@@ -17,21 +17,18 @@ pipeline {
             }
         }
         stage('Build and Test') {
-            steps {
-                parallel(
-                    Build: {
+            parallel {
+                stage('Build') {
+                    steps {
                         sh './docker/docker_run.py bazel build ...'
-                    },
-                    Test: {
+                    }
+                }
+                stage('Test') {
+                    steps {
                         sh './docker/docker_run.py bazel test ...'
                     }
-                )
+                }
             }
         }
-        // stage('Test') {
-        //     steps {
-        //         sh './docker/docker_run.py bazel test ...'
-        //     }
-        // }
     }
 }
