@@ -1,9 +1,9 @@
-DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null 2>&1 && pwd )"
+DIR="$( dirname $( realpath $0 ) )"
 
 docker run \
-	--name bazel-build \
+    --name bazel-build \
     --network=host \
-	--rm \
+    --rm \
     --user $UID:$GID \
     --workdir="/automata" \
     --volume="/etc/group:/etc/group:ro" \
