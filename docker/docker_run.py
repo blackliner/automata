@@ -9,7 +9,7 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser(description='Build docker images.')
     parser.add_argument('-n', '--name', default='bazel_build')
 
-    args = parser.parse_args()
+    args, unknown_args = parser.parse_known_args()
 
     docker_dir = os.path.dirname(os.path.realpath(__file__))
 
@@ -27,6 +27,6 @@ if __name__ == "__main__":
     ]
 
     command = ['docker', 'run', '--network', 'host', '--rm', '--workdir',
-               '/automata'] + user_args + volume_args + [args.name]
+               '/automata'] + user_args + volume_args + [args.name] + unknown_args
 
     subprocess.call(command)

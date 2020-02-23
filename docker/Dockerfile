@@ -27,7 +27,9 @@ RUN apt-get update && apt-get -qq install --no-install-recommends \
     libpng-dev \
     && rm -rf /var/lib/apt/lists/*
 
-COPY entry.sh /etc/
+WORKDIR /automata
 
-ENTRYPOINT /etc/entry.sh
+# COPY entry.sh /etc/
+
+# ENTRYPOINT /etc/entry.sh
 

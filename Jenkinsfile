@@ -11,9 +11,19 @@ pipeline {
                 sh './docker/build.py'
             }
         }        
-        stage('Build and test code') {
+        stage('Cleanup') {
             steps {
-                sh './docker/docker_run.py'
+                sh './docker/docker_run.py bazel clean'
+            }
+        }
+        stage('Build') {
+            steps {
+                sh './docker/docker_run.py bazel build ...'
+            }
+        }
+        stage('Test') {
+            steps {
+                sh './docker/docker_run.py bazel test ...'
             }
         }
     }
