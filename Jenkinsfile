@@ -16,13 +16,13 @@ pipeline {
                 sh './docker/docker_run.py bazel clean'
             }
         }
-        stage('Build') {
+        stage('Build and Test') {
             steps {
                 parallel(
-                    a: {
+                    Build: {
                         sh './docker/docker_run.py bazel build ...'
                     },
-                    b: {
+                    Test: {
                         sh './docker/docker_run.py bazel test ...'
                     }
                 )
