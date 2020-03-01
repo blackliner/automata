@@ -29,4 +29,6 @@ if __name__ == "__main__":
     command = ['docker', 'run', '--network', 'host', '--rm', '--workdir',
                '/automata'] + user_args + volume_args + [args.name] + unknown_args
 
-    subprocess.call(command)
+    retcode = subprocess.call(command)
+
+    exit(retcode)
