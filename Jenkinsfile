@@ -17,17 +17,18 @@ pipeline {
                 sh './docker/docker_run.py find . -type l | xargs rm'
             }
         }
-        stage('Build and Test') {
+        stage('Build and test') {
             parallel {
-                stage('Build') {
+                stage('Build and test') {
                     steps {
                         sh './docker/docker_run.py bazel build ...'
                     }
-                }
-                stage('Test') {
                     steps {
                         sh './docker/docker_run.py bazel test ...'
                     }
+                }
+                stage('Do nothing') {
+
                 }
             }
         }
