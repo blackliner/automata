@@ -25,7 +25,6 @@ RUN apt-get update && apt-get -qq install --no-install-recommends \
     libgl1-mesa-dev \
     libsfml-dev \
     libpng-dev \
-    xargs \
     && rm -rf /var/lib/apt/lists/*
 
 WORKDIR /automata
