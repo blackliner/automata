@@ -13,7 +13,8 @@ pipeline {
         }        
         stage('Cleanup') {
             steps {
-                sh './docker/docker_run.py bazel clean'
+                //sh './docker/docker_run.py bazel clean'
+                sh './docker/docker_run.py find . -type l | xargs rm'
             }
         }
         stage('Build and Test') {
