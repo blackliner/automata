@@ -14,7 +14,7 @@ pipeline {
         stage('Cleanup') {
             steps {
                 //sh './docker/docker_run.py bazel clean'
-                sh './docker/docker_run.py "find . -type l | xargs -r rm"'
+                sh './docker/docker_run.py find . -type l | xargs -r rm'
             }
         }
         stage('Build') {
