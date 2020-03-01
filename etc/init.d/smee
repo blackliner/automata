@@ -1,0 +1,39 @@
+#! /bin/sh
+
+PATH=/bin:/usr/bin:/sbin:/usr/sbin:/usr/local/bin
+DAEMON=/usr/local/bin/smee
+DAEMON_OPTS="-u https://smee.io/E1mjtG4HNKWTtNbn --path /github-webhook/ --port 8080"
+PIDFILE=/var/run/smee.pid
+
+test -x $DAEMON || exit 0
+
+. /lib/lsb/init-functions
+
+case "$1" in
+  start)
+ log_daemon_msg "Starting smee" "smee"
+ args="--start --background"
+ /sbin/start-stop-daemon $args --exec $DAEMON --make-pidfile --pidfile $PIDFILE -- $DAEMON_OPTS
+ #start_daemon -p $PIDFILE $DAEMON
+ log_end_msg $?
+    ;;
+  stop)
+ log_daemon_msg "Stopping smee" "smee"
+ /sbin/start-stop-daemon --stop --pidfile $PIDFILE --name node
+ #killproc -p $PIDFILE $DAEMON
+ log_end_msg $?
+    ;;
+  force-reload|restart)
+    $0 stop
+    $0 start
+    ;;
+  status)
+    status_of_proc -p $PIDFILE $DAEMON smee && exit 0 || exit $?
+    ;;
+  *)
+    echo "Usage: /etc/init.d/smee {start|stop|restart|force-reload|status}"
+    exit 1
+    ;;
+esac
+
+exit 0
