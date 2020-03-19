@@ -28,7 +28,13 @@ RUN apt-get update && apt-get -qq install --no-install-recommends \
     && rm -rf /var/lib/apt/lists/*
 
 
-RUN git clone https://github.com/opencv/opencv.git && cd opencv && mkdir build && cd build && cmake -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=/usr/local .. && make -j 24 && sudo make install
+RUN git clone https://github.com/opencv/opencv.git 
+RUN cd opencv
+RUN mkdir build 
+RUN cd build 
+RUN cmake -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=/usr/local ..
+RUN make -j 24
+RUN make install
 
 WORKDIR /automata
 
