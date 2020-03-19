@@ -28,6 +28,11 @@ RUN apt-get update && apt-get -qq install --no-install-recommends \
     && rm -rf /var/lib/apt/lists/*
 
 
+RUN apt-get update && apt-get -qq install --no-install-recommends \
+    build-essential \
+    && rm -rf /var/lib/apt/lists/*
+
+
 RUN git clone https://github.com/opencv/opencv.git 
 RUN cd opencv
 RUN mkdir build 
