@@ -29,6 +29,7 @@ RUN apt-get update && apt-get -qq install --no-install-recommends \
 
 
 RUN apt-get update && apt-get -qq install --no-install-recommends \
+    cmake \
     build-essential \
     && rm -rf /var/lib/apt/lists/*
 
