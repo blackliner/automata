@@ -30,6 +30,11 @@ load("@com_github_google_rules_install//:deps.bzl", "install_rules_dependencies"
 
 install_rules_dependencies()
 
+new_local_repository(
+    name = "usr_local",
+    build_file = "usr_local.BUILD",
+    path = "/usr/local",
+)
 
 # needed packages
 # sudo apt install libpng-dev
