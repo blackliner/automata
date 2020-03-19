@@ -27,6 +27,9 @@ RUN apt-get update && apt-get -qq install --no-install-recommends \
     libpng-dev \
     && rm -rf /var/lib/apt/lists/*
 
+
+RUN git clone https://github.com/opencv/opencv.git && cd opencv && mkdir build && cd build && cmake -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=/usr/local .. && make -j 24 && sudo make install
+
 WORKDIR /automata
 
 # COPY entry.sh /etc/
