@@ -30,16 +30,10 @@ RUN apt-get update && apt-get -qq install --no-install-recommends \
 
 RUN apt-get update && apt-get -qq install --no-install-recommends \
     cmake \
+    ninja-build \
     build-essential \
     && rm -rf /var/lib/apt/lists/*
 
-
-RUN git clone https://github.com/opencv/opencv.git 
-RUN mkdir /opencv/build
-WORKDIR /opencv/build
-RUN cmake -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=/usr/local ..
-RUN make -j 24
-RUN make install
 
 WORKDIR /automata
 

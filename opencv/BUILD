@@ -5,5 +5,5 @@ cc_binary(
         "LinuxLogo.jpg",
         "WindowsLogo.jpg",
     ],
-    deps = ["@usr_local//:opencv4"],
+    deps = ["//:opencv"],
 )

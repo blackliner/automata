@@ -1,3 +1,5 @@
+set -euxo pipefail
+
 ./docker/build.py
 
 ./docker/docker_run.py bazel clean
