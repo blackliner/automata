@@ -6,9 +6,9 @@
 #ifndef AUTOMATA_QUAD_TREE_H
 #define AUTOMATA_QUAD_TREE_H
 
-#include <vector>
-
 #include <Vector2D.h>
+
+#include <vector>
 
 using Point = Vector2D<int>;
 
@@ -76,21 +76,21 @@ class QuadTree {
       }
 
       // now we need to put all currently stored items into lower nodes
-      auto temp_nodes = m_nodes;
-      m_nodes.clear();
-      for (auto node : temp_nodes) {
-        AddNode(node.value, node.point);
+      if (!m_nodes.empty()) {
+        auto temp_nodes = m_nodes;
+        m_nodes.clear();
+        for (auto node : temp_nodes) {
+          AddNode(node.value, node.point);
+        }
+        m_nodes.clear();
       }
-      m_nodes.clear();
     } else {
       m_nodes.emplace_back(value, pos);
     }
   }
 
-  int Size() {
-    int size{};
-
-    size += static_cast<int>(m_nodes.size());
+  size_t Size() const {
+    size_t size{m_nodes.size()};
 
     size += m_child_nw ? m_child_nw->Size() : 0;
     size += m_child_ne ? m_child_ne->Size() : 0;
@@ -100,7 +100,7 @@ class QuadTree {
     return size;
   }
 
-  std::vector<T> Search(Point search_area_top_left, Point search_area_bot_right) {
+  std::vector<T> Search(Point search_area_top_left, Point search_area_bot_right) const {
     std::vector<T> return_vector;
 
     const bool is_x_within_node_area =
@@ -145,7 +145,6 @@ class QuadTree {
 
   std::vector<Node<T>> m_nodes;
 
- public:
   Point m_top_left;
   Point m_bot_right;
 
@@ -154,30 +153,5 @@ class QuadTree {
   std::unique_ptr<QuadTree<T>> m_child_sw;
   std::unique_ptr<QuadTree<T>> m_child_se;
 };
-
-// template <typename T>
-// class QuadTree {
-// public:
-//  QuadTree(Point top_left, Point bot_right)
-//  {
-//    m_root.SetPoints(top_left, bot_right);
-//  }
-//
-//
-//  void AddNode(T value, Point pos) {
-//    m_root.AddNode(value, pos);
-//  }
-//
-//  int Size() {
-//    return m_root.Size();
-//  }
-//
-//  std::vector<T> Search(Point left_top, Point right_bot) {
-//    return m_root.Search(left_top, right_bot);
-//  }
-//
-// private:
-//  Node<T> m_root;
-//};
 
 #endif  // AUTOMATA_QUAD_TREE_H
