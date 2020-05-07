@@ -8,6 +8,7 @@
 
 #include <Vector2D.h>
 
+#include <memory>
 #include <vector>
 
 using Point = Vector2D<int>;

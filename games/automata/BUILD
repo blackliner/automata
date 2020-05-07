@@ -4,7 +4,7 @@ load("@com_github_google_rules_install//installer:def.bzl", "installer")
 package(default_visibility = ["//visibility:public"])
 
 cc_binary(
-    name = "auto",
+    name = "automata",
     srcs = [
         "Main.cpp",
         "Main.h",
@@ -17,8 +17,7 @@ cc_binary(
     ],
 )
 
-# installer(
-#     name = "install",
-#     # data = ["quadtree"],
-#     data = ["//quadtree"],
-# )
+installer(
+    name = "install_automata",
+    data = [":automata"],
+)

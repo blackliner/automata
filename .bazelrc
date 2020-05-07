@@ -1,6 +1,6 @@
-build -c dbg --copt=-fdiagnostics-color=always
-test -c dbg
-run -c dbg
+build -c opt --copt=-fdiagnostics-color=always --cxxopt='-std=c++17'
+test -c opt
+run -c opt
 
 #--copt="-pg" --cxxopt="-pg" --linkopt="-pg"
 
