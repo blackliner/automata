@@ -1,11 +1,11 @@
 #define _USE_MATH_DEFINES
 
+#include "Main.h"
+
 #include <chrono>
 #include <cmath>
 #include <future>
 #include <thread>
-
-#include "Main.h"
 
 void Maze::WrapVehiclePositions(Vehicle& vehicle) {
   if (vehicle.WriteableState().pos.x < 0) {
@@ -88,16 +88,6 @@ bool Maze::OnUserUpdate(float fElapsedTime) {
 
   auto begin = std::chrono::high_resolution_clock::now();
 
-  // calculate vehicle distances
-  squared_distance_lookup.clear();
-  for (const auto& veh_a : vehicles) {
-    for (const auto& veh_b : vehicles) {
-      auto distance_squared = (veh_a.ReadableState().pos - veh_b.ReadableState().pos).MagSquared();
-
-      squared_distance_lookup[veh_a.ID][veh_b.ID] = distance_squared;
-    }
-  }
-
   //  std::thread draw_thread(DrawScreen, &renderer, vehicles, path);
 
   HandleInput(fElapsedTime);
@@ -178,18 +168,14 @@ void Maze::HandleCommands() {
 class AddNewVehicleCommand : public ICommand {
  private:
   const IRenderer* m_renderer;
-  SDLut* m_squared_distance_lookup;
   Vector2D<VectorT> m_position;
   VehicleType m_type;
   std::vector<Vehicle>& m_vehicles;
 
   int m_ID{};
 
-  void AddNewVehicle(const IRenderer* renderer,
-                     SDLut* squared_distance_lookup,
-                     Vector2D<VectorT> position,
-                     VehicleType type) {
-    Vehicle new_vehicle{renderer, squared_distance_lookup};
+  void AddNewVehicle(const IRenderer* renderer, Vector2D<VectorT> position, VehicleType type) {
+    Vehicle new_vehicle{renderer};
     new_vehicle.WriteableState().pos = position;
     new_vehicle.WriteableState().vel.x = 100.0 + (double)rand() / (double)RAND_MAX * 100.0;
     new_vehicle.WriteableState().vel.y = 100.0 + (double)rand() / (double)RAND_MAX * 100.0;
@@ -201,19 +187,14 @@ class AddNewVehicleCommand : public ICommand {
 
  public:
   AddNewVehicleCommand(const IRenderer* renderer,
-                       SDLut* squared_distance_lookup,
                        Vector2D<VectorT> position,
                        VehicleType type,
                        std::vector<Vehicle>& vehicles)
-      : m_renderer(renderer),
-        m_squared_distance_lookup(squared_distance_lookup),
-        m_position(position),
-        m_type(type),
-        m_vehicles(vehicles) {
+      : m_renderer(renderer), m_position(position), m_type(type), m_vehicles(vehicles) {
   }
 
   void Execute() override {
-    AddNewVehicle(m_renderer, m_squared_distance_lookup, m_position, m_type);
+    AddNewVehicle(m_renderer, m_position, m_type);
   }
 
   void Undo() override {
@@ -222,8 +203,7 @@ class AddNewVehicleCommand : public ICommand {
 };
 
 void Maze::AddNewVehicle(double x, double y, VehicleType type) {
-  command_list.push_back(std::make_unique<AddNewVehicleCommand>(&renderer, &squared_distance_lookup,
-                                                                Vector2D<VectorT>{x, y}, type, vehicles));
+  command_list.push_back(std::make_unique<AddNewVehicleCommand>(&renderer, Vector2D<VectorT>{x, y}, type, vehicles));
 }
 
 void Maze::HandleInput(float fElapsedTime) {

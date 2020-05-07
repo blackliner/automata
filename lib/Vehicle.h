@@ -29,8 +29,6 @@ struct VehicleState {
   Vector2D<VectorT> acc{};
 };
 
-using SDLut = std::unordered_map<int, std::unordered_map<int, double>>;
-
 double Map(double value, double from_start, double from_end, double to_start, double to_end);
 
 class Vehicle {
@@ -46,11 +44,8 @@ class Vehicle {
 
   const IRenderer* m_renderer;
 
-  SDLut* m_squared_distance_lookup{};
-
  public:
-  explicit Vehicle(const IRenderer* renderer, SDLut* squared_distance_lookup)
-      : m_renderer(renderer), m_squared_distance_lookup(squared_distance_lookup) {
+  explicit Vehicle(const IRenderer* renderer) : m_renderer(renderer) {
     InitVehicle();
   };
 
@@ -71,10 +66,6 @@ class Vehicle {
     current_write_state = (current_write_state + 1) % 2;
   }
 
-  //  Vector2D<VectorT> pos{};
-  //  Vector2D<VectorT> vel{};
-  //  Vector2D<VectorT> acc{};
-  //  Vector2D<VectorT> last_acc{};        //for visu purpose
   Vector2D<VectorT> last_heading{0.0, 1.0};  // to know its orientation if speed = 0; always unit vector
 
   //  ---------------------config-------------------------

@@ -2,11 +2,10 @@
 
 #define OLC_PGE_APPLICATION
 
-#include "olcPixelGameEngine.h"
-
 #include "PathSegment.h"
 #include "Vector2D.h"
 #include "Vehicle.h"
+#include "olcPixelGameEngine.h"
 #include "quadtree.h"
 
 constexpr int fBlockWidth = 1;
@@ -69,8 +68,6 @@ class Maze : public olc::PixelGameEngine {
   const int vehicle_roby = 1;
 
   OLCRenderer renderer;
-
-  SDLut squared_distance_lookup;
 
   std::vector<Vehicle> vehicles;  // nr1 is our mouse, nr 2 is roby
   //  std::vector<Vehicle> new_born;

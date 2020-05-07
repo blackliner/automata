@@ -1,6 +1,5 @@
 #include <SFML/Graphics.hpp>
 #include <SFML/Window.hpp>
-
 #include <iostream>
 
 class FramesCounter {
@@ -39,7 +38,7 @@ void PrintKeys(const std::map<sf::Keyboard::Key, bool>& key_map) {
 }
 
 int main() {
-  sf::RenderWindow window(sf::VideoMode(500, 500), "SFML works!");
+  sf::RenderWindow window(sf::VideoMode(1024, 1024), "SFML works!");
   window.setMouseCursorVisible(false);
 
   sf::CircleShape circle_shape;

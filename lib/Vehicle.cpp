@@ -131,12 +131,7 @@ bool Vehicle::CheckEnemyClan(const Vehicle& vehicle) const {
 }
 
 double Vehicle::CalculateDistanceSquared(const Vehicle& vehicle) const {
-  if (false) {
-    return (vehicle.ReadableState().pos - ReadableState().pos).MagSquared();
-  } else {
-    return (*m_squared_distance_lookup)[ID][vehicle.ID];
-    //    return m_squared_distance_lookup->at(ID).at(vehicle.ID);
-  }
+  return (vehicle.ReadableState().pos - ReadableState().pos).MagSquared();
 }
 
 bool Vehicle::CheckInDistance(const Vehicle& vehicle, double distance) const {
@@ -145,7 +140,31 @@ bool Vehicle::CheckInDistance(const Vehicle& vehicle, double distance) const {
   return is_circle_distance_ok;
 }
 
+constexpr double DiamondAngle(const Vector2D<VectorT> point) {
+  double x = point.x;
+  double y = point.y;
+
+  if (y >= 0)
+    return (x >= 0) ? y / (x + y) : 1 - x / (-x + y);
+  else
+    return (x < 0) ? 2 - y / (-x - y) : 3 + x / (x - y);
+}
+
+constexpr double RadiansToDiamondAngle(double rad) {
+  Vector2D<VectorT> point;
+  point.x = std::cos(rad);
+  point.y = std::sin(rad);
+
+  return DiamondAngle(point);
+}
+
 bool Vehicle::CheckInCone(const Vehicle& vehicle, double angle) const {
+  if (true) {
+    auto angle_a = DiamondAngle(vehicle.ReadableState().pos - ReadableState().pos);
+    auto angle_b = DiamondAngle(last_heading);
+    return abs(angle_a - angle_b) < RadiansToDiamondAngle(angle);
+  }
+
   auto a = vehicle.ReadableState().pos - ReadableState().pos;
   auto b = last_heading;
   auto angle_to_vehicle = acos(a.Dot(b) / (a.Mag() * b.Mag()));
@@ -345,16 +364,14 @@ Vector2D<VectorT> Vehicle::Wander() const {
 
 bool Vehicle::GunSensor(const VehicleStorage& vehicles) const {
   for (const auto& vehicle : vehicles) {
-    //    auto distance_squared = CalculateDistanceSquared(vehicle);
-    //    auto is_cone_distance_ok =
-    //        (distance_squared > 0) && (distance_squared < (weapon.GetGunRange() * weapon.GetGunRange()));
-
     auto is_cone_distance_ok = CheckInDistance(vehicle, weapon.GetGunRange());
 
-    auto a = vehicle.get().ReadableState().pos - ReadableState().pos;
-    auto b = last_heading;
-    auto angle_to_vehicle = acos(a.Dot(b) / (a.Mag() * b.Mag()));
-    auto is_angle_ok = angle_to_vehicle < weapon.GetGunAngle();
+    // auto a = vehicle.get().ReadableState().pos - ReadableState().pos;
+    // auto b = last_heading;
+    // auto angle_to_vehicle = acos(a.Dot(b) / (a.Mag() * b.Mag()));
+    // auto is_angle_ok = angle_to_vehicle < weapon.GetGunAngle();
+
+    auto is_angle_ok = CheckInCone(vehicle, weapon.GetGunAngle());
 
     auto is_enemy_clan = CheckEnemyClan(vehicle);
 
