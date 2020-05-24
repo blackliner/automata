@@ -140,13 +140,13 @@ class Vehicle {
 
   bool CheckInCone(const Vehicle& vehicle, double angle) const;
 
-  VehicleStorage CircularSensor(std::vector<Vehicle>& vehicles) const;
+  VehicleStorage CircularSensor(VehicleStorage& vehicles) const;
 
-  VehicleStorage AngularSensor(std::vector<Vehicle>& vehicles) const;
+  VehicleStorage AngularSensor(VehicleStorage& vehicles) const;
 
-  VehicleStorage BothSensor(std::vector<Vehicle>& vehicles) const;
+  VehicleStorage BothSensor(VehicleStorage& vehicles) const;
 
-  VehicleStorage ScanForVehiclesInRange(std::vector<Vehicle>& vehicles) const;
+  VehicleStorage ScanForVehiclesInRange(VehicleStorage& vehicles) const;
 
   Vector2D<VectorT> Seek(const Vector2D<VectorT>& target_pos) const;
 
@@ -177,5 +177,4 @@ class Vehicle {
   Vehicle& Reproduce(const VehicleStorage& vehicles);
 };
 
-// move to cpp and remove inline
 inline int Vehicle::current_id;

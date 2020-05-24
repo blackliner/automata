@@ -141,7 +141,7 @@ class QuadTree {
     m_bot_right = bot_right;
   }
 
- private:
+ public:
   size_t m_bucket_size{1};
 
   std::vector<Node<T>> m_nodes;

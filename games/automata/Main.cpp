@@ -88,11 +88,18 @@ bool Maze::OnUserUpdate(float fElapsedTime) {
 
   auto begin = std::chrono::high_resolution_clock::now();
 
-  //  std::thread draw_thread(DrawScreen, &renderer, vehicles, path);
-
   HandleInput(fElapsedTime);
 
   RemoveDeadVehicles();
+
+  QuadTree<Vehicle*> quad_tree{};
+  quad_tree.SetPoints({0, ScreenHeight()}, {ScreenWidth(), 0});
+  for (auto& vehicle : vehicles) {
+    Point p{static_cast<int>(vehicle.ReadableState().pos.x), static_cast<int>(vehicle.ReadableState().pos.y)};
+    quad_tree.AddNode(&vehicle, p);
+  }
+
+  // DrawQuadTree(quad_tree);
 
   if (vehicles.size() > 1) {
     UpdateMouseVehicle(vehicles[vehicle_mouse], GetMouseX(), GetMouseY(), fElapsedTime);
@@ -103,7 +110,20 @@ bool Maze::OnUserUpdate(float fElapsedTime) {
 
     // do calculations for all but the first vehicle (which is our mouse)
     for (auto vehicle = std::next(vehicles.begin()); vehicle != vehicles.end(); vehicle = std::next(vehicle)) {
-      auto found_vehicles = vehicle->ScanForVehiclesInRange(vehicles);
+      const int radius = static_cast<int>(std::max(vehicle->sensor_circle_radius, vehicle->sensor_cone_radius));
+      const int x = vehicle->ReadableState().pos.x;
+      const int y = vehicle->ReadableState().pos.y;
+      const Point top_left{x - radius, y + radius};
+      const Point bot_right{x + radius, y - radius};
+
+      auto neighbours_tmp = quad_tree.Search(top_left, bot_right);
+
+      VehicleStorage neighbours;
+      for (Vehicle* neighbour : neighbours_tmp) {
+        neighbours.push_back(std::reference_wrapper(*neighbour));
+      }
+
+      auto found_vehicles = vehicle->ScanForVehiclesInRange(neighbours);
 
       vehicle->UpdateWeapons(found_vehicles, fElapsedTime);
 
@@ -132,15 +152,6 @@ bool Maze::OnUserUpdate(float fElapsedTime) {
 
   HandleCommands();
 
-  QuadTree<Vehicle*> quad_tree{};
-  quad_tree.SetPoints({0, ScreenHeight()}, {ScreenWidth(), 0});
-  for (auto& vehicle : vehicles) {
-    Point p{static_cast<int>(vehicle.ReadableState().pos.x), static_cast<int>(vehicle.ReadableState().pos.y)};
-    quad_tree.AddNode(&vehicle, p);
-  }
-
-  // DrawQuadTree(quad_tree);
-
   SwapStates(vehicles);
 
   DrawPerformanceOSD(duration_game_thread, duration_draw_thread);
@@ -150,9 +161,13 @@ bool Maze::OnUserUpdate(float fElapsedTime) {
 
 void Maze::DrawPerformanceOSD(long duration_game_thread_ns, long duration_draw_thread_ns) {
   int row_osd{};
+  int row_offset{10};
 
-  DrawString(10, 20 * row_osd++, "duration game thread: " + std::to_string(duration_game_thread_ns / 1000) + "mys");
-  DrawString(10, 20 * row_osd++, "duration draw thread: " + std::to_string(duration_draw_thread_ns / 1000) + "mys");
+  DrawString(10, row_offset + 20 * row_osd++,
+             "duration game thread: " + std::to_string(duration_game_thread_ns / 1000) + "mys");
+  DrawString(10, row_offset + 20 * row_osd++,
+             "duration draw thread: " + std::to_string(duration_draw_thread_ns / 1000) + "mys");
+  DrawString(10, row_offset + 20 * row_osd++, "total number of vehicles: " + std::to_string(vehicles.size()));
 }
 
 void Maze::HandleCommands() {

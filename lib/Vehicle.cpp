@@ -168,7 +168,7 @@ bool Vehicle::CheckInCone(const Vehicle& vehicle, double angle) const {
   return angle_to_vehicle < angle;
 }
 
-VehicleStorage Vehicle::CircularSensor(std::vector<Vehicle>& vehicles) const {
+VehicleStorage Vehicle::CircularSensor(VehicleStorage& vehicles) const {
   VehicleStorage ret_value;
 
   for (auto& vehicle : vehicles) {
@@ -178,30 +178,30 @@ VehicleStorage Vehicle::CircularSensor(std::vector<Vehicle>& vehicles) const {
   return ret_value;
 }
 
-VehicleStorage Vehicle::AngularSensor(std::vector<Vehicle>& vehicles) const {
+VehicleStorage Vehicle::AngularSensor(VehicleStorage& vehicles) const {
   VehicleStorage ret_value;
 
   for (auto& vehicle : vehicles) {
     if (CheckInDistance(vehicle, sensor_cone_radius) && CheckInCone(vehicle, sensor_angle))
-      ret_value.push_back(std::reference_wrapper(vehicle));
+      ret_value.push_back(vehicle);
   }
 
   return ret_value;
 }
 
-VehicleStorage Vehicle::BothSensor(std::vector<Vehicle>& vehicles) const {
+VehicleStorage Vehicle::BothSensor(VehicleStorage& vehicles) const {
   VehicleStorage ret_value;
 
   for (auto& vehicle : vehicles) {
     if (CheckInDistance(vehicle, sensor_circle_radius) ||
         (CheckInDistance(vehicle, sensor_cone_radius) && CheckInCone(vehicle, sensor_angle)))
-      ret_value.push_back(std::reference_wrapper(vehicle));
+      ret_value.push_back(vehicle);
   }
 
   return ret_value;
 }
 
-VehicleStorage Vehicle::ScanForVehiclesInRange(std::vector<Vehicle>& vehicles) const {
+VehicleStorage Vehicle::ScanForVehiclesInRange(VehicleStorage& vehicles) const {
   switch (sensor_type) {
     case SensorType::CIRCLE:
       return CircularSensor(vehicles);
