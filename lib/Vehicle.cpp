@@ -140,22 +140,19 @@ bool Vehicle::CheckInDistance(const Vehicle& vehicle, double distance) const {
   return is_circle_distance_ok;
 }
 
-constexpr double DiamondAngle(const Vector2D<VectorT> point) {
-  double x = point.x;
-  double y = point.y;
-
+constexpr double DiamondAngle(double x, double y) {
   if (y >= 0)
     return (x >= 0) ? y / (x + y) : 1 - x / (-x + y);
   else
     return (x < 0) ? 2 - y / (-x - y) : 3 + x / (x - y);
 }
 
-constexpr double RadiansToDiamondAngle(double rad) {
-  Vector2D<VectorT> point;
-  point.x = std::cos(rad);
-  point.y = std::sin(rad);
+constexpr double DiamondAngle(const Vector2D<VectorT>& point) {
+  DiamondAngle(point.x, point.y);
+}
 
-  return DiamondAngle(point);
+constexpr double RadiansToDiamondAngle(double rad) {
+  return DiamondAngle(std::cos(rad), std::sin(rad));
 }
 
 bool Vehicle::CheckInCone(const Vehicle& vehicle, double angle) const {

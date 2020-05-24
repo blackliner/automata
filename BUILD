@@ -20,3 +20,33 @@ cmake_external(
     ],
     visibility = ["//visibility:public"],
 )
+
+cmake_external(
+    name = "sfml",
+    cmake_options = [
+        "-GNinja",
+        "-DCMAKE_BUILD_TYPE=Release",
+        "-DSFML_BUILD_EXAMPLES=OFF",
+    ],
+    lib_source = "@sfml//:all",
+    make_commands = [
+        "ninja",
+        "ninja install",
+    ],
+    out_include_dir = "include",
+    shared_libraries = [
+        # "libsfml-audio.so",
+        "libsfml-audio.so.2.5",
+        # "libsfml-audio.so.2.5.1",
+        # "libsfml-graphics.so",
+        "libsfml-graphics.so.2.5",
+        # "libsfml-graphics.so.2.5.1",
+        # "libsfml-system.so",
+        "libsfml-system.so.2.5",
+        # "libsfml-system.so.2.5.1",
+        # "libsfml-window.so",
+        "libsfml-window.so.2.5",
+        # "libsfml-window.so.2.5.1",
+    ],
+    visibility = ["//visibility:public"],
+)

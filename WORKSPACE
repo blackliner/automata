@@ -44,6 +44,14 @@ http_archive(
 )
 
 http_archive(
+    name = "sfml",
+    build_file_content = all_content,
+    sha256 = "6124b5fe3d96e7f681f587e2d5b456cd0ec460393dfe46691f1933d6bde0640b",
+    strip_prefix = "SFML-2.5.1",
+    urls = ["https://github.com/SFML/SFML/archive/2.5.1.zip"],
+)
+
+http_archive(
     name = "rules_foreign_cc",
     strip_prefix = "rules_foreign_cc-master",
     url = "https://github.com/bazelbuild/rules_foreign_cc/archive/master.zip",
