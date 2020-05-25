@@ -13,10 +13,6 @@
 #include "Vector2D.h"
 #include "Weapons.h"
 
-class Vehicle;
-
-using VehicleStorage = std::vector<std::reference_wrapper<Vehicle>>;
-
 enum class VehicleType : std::uint8_t { TRIANGLE, CIRCLE, FLY, BIRD };
 
 enum class SensorType : std::uint8_t { CIRCLE, ANGULAR, BOTH };
@@ -33,6 +29,8 @@ double Map(double value, double from_start, double from_end, double to_start, do
 
 class Vehicle {
  private:
+  using VehicleStorage = std::vector<std::reference_wrapper<Vehicle>>;
+
   static int current_id;
 
   void InitVehicle();

@@ -89,7 +89,9 @@ Vector2D<VectorT> Vehicle::PredictedPos() const {
 }
 
 void Vehicle::applyForce(Vector2D<VectorT> force, double delta_t) {
-  if (delta_t > 0.0) WriteableState().acc = WriteableState().acc + force;  // / delta_t;
+  if (delta_t > 0.0) {
+    WriteableState().acc = WriteableState().acc + force;  // / delta_t;
+  }
 }
 
 VehicleStorage Vehicle::FindClosestVehicle(const VehicleStorage& vehicles) {
@@ -148,7 +150,7 @@ constexpr double DiamondAngle(double x, double y) {
 }
 
 constexpr double DiamondAngle(const Vector2D<VectorT>& point) {
-  DiamondAngle(point.x, point.y);
+  return DiamondAngle(point.x, point.y);
 }
 
 constexpr double RadiansToDiamondAngle(double rad) {

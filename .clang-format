@@ -1,6 +1,5 @@
 BasedOnStyle: Google
 AllowShortFunctionsOnASingleLine: None
 DerivePointerAlignment: false
-# LDW Specific Style
 ColumnLimit: 120
 BinPackParameters: false
