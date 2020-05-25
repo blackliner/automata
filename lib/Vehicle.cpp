@@ -39,15 +39,15 @@ void Vehicle::SetType(const VehicleType& type) {
       vehicle_type = VehicleType::CIRCLE;
       sensor_type = SensorType::CIRCLE;
       sensor_circle_radius = 25;
-      size = 5;
-      max_force *= 10;
+      m_size = 5;
+      m_max_force *= 10;
       break;
     case VehicleType::BIRD:
       vehicle_type = VehicleType::TRIANGLE;
       sensor_type = SensorType::BOTH;
       sensor_circle_radius = 100;
       sensor_cone_radius = 500;
-      size = 25;
+      m_size = 25;
       break;
   }
 }
@@ -64,7 +64,7 @@ VehicleType Vehicle::GetRandomType() {
 
 void Vehicle::UpdateKinematics(double delta_t) {
   WriteableState().vel = ReadableState().vel + WriteableState().acc * delta_t;
-  WriteableState().vel.Limit(max_velocity);
+  WriteableState().vel.Limit(m_max_velocity);
   WriteableState().pos = ReadableState().pos + WriteableState().vel * delta_t;
 
   // TODO really have to zero here?
@@ -218,10 +218,10 @@ VehicleStorage Vehicle::ScanForVehiclesInRange(VehicleStorage& vehicles) const {
 
 Vector2D<VectorT> Vehicle::Seek(const Vector2D<VectorT>& target_pos) const {
   auto desired = (target_pos - ReadableState().pos);
-  desired.SetMag(max_velocity);
+  desired.SetMag(m_max_velocity);
 
-  auto steer = (desired - ReadableState().vel) / max_velocity * max_force;
-  steer.Limit(max_force);
+  auto steer = (desired - ReadableState().vel) / m_max_velocity * m_max_force;
+  steer.Limit(m_max_force);
 
   return steer;
 }
@@ -230,12 +230,12 @@ Vector2D<VectorT> Vehicle::Arrive(const Vector2D<VectorT>& target_pos) const {
   auto desired = (target_pos - ReadableState().pos);
   auto distance = desired.Mag();
 
-  auto desired_mag = Map(distance, size, sensor_circle_radius, 0, max_velocity);
+  auto desired_mag = Map(distance, m_size, sensor_circle_radius, 0, m_max_velocity);
   desired.SetMag(desired_mag);
 
   // auto steer = desired - vel;
-  auto steer = (desired - ReadableState().vel) / max_velocity * max_force;
-  steer.Limit(max_force);
+  auto steer = (desired - ReadableState().vel) / m_max_velocity * m_max_force;
+  steer.Limit(m_max_force);
 
   return steer;
 }
@@ -281,11 +281,11 @@ Vector2D<VectorT> Vehicle::Align(const VehicleStorage& vehicles) const {
   }
 
   if (!vehicles.empty()) {
-    desired.SetMag(max_velocity);
+    desired.SetMag(m_max_velocity);
 
     // steer = desired - vel;
-    steer = (desired - ReadableState().vel) / max_velocity * max_force;
-    steer.Limit(max_force);
+    steer = (desired - ReadableState().vel) / m_max_velocity * m_max_force;
+    steer.Limit(m_max_force);
   }
 
   return steer;
@@ -298,11 +298,11 @@ Vector2D<VectorT> Vehicle::Flee(const VehicleStorage& vehicles) const {
     desired = desired + ReadableState().pos - vehicle.get().ReadableState().pos;
   }
 
-  desired.SetMag(max_velocity);
+  desired.SetMag(m_max_velocity);
 
   // auto steer = desired - vel;
-  auto steer = (desired - ReadableState().vel) / max_velocity * max_force;
-  steer.Limit(max_force);
+  auto steer = (desired - ReadableState().vel) / m_max_velocity * m_max_force;
+  steer.Limit(m_max_force);
 
   return steer;
 }
@@ -312,7 +312,7 @@ Vector2D<VectorT> Vehicle::Separate(const VehicleStorage& vehicles) const {
   int count{};
 
   for (auto vehicle : vehicles) {
-    auto desired_separation = 1.0 * (size + vehicle.get().size);
+    auto desired_separation = 1.0 * (m_size + vehicle.get().m_size);
     auto diff = ReadableState().pos - vehicle.get().ReadableState().pos;
     auto distance = diff.MagSquared();
     if (distance < (desired_separation * desired_separation)) {
@@ -324,10 +324,10 @@ Vector2D<VectorT> Vehicle::Separate(const VehicleStorage& vehicles) const {
   }
 
   if (count) {
-    desired.SetMag(max_velocity);
+    desired.SetMag(m_max_velocity);
     // steer = desired - vel;
-    steer = (desired - ReadableState().vel) / max_velocity * max_force;
-    steer.Limit(max_force);
+    steer = (desired - ReadableState().vel) / m_max_velocity * m_max_force;
+    steer.Limit(m_max_force);
   }
 
   return steer;
@@ -352,11 +352,11 @@ Vector2D<VectorT> Vehicle::Wander() const {
   auto next_direction = perlin * M_PI * 2.0;
 
   Vector2D<VectorT> desired{sin(next_direction), cos(next_direction)};
-  desired.SetMag(0.25 * max_velocity);
+  desired.SetMag(0.25 * m_max_velocity);
 
   // auto steer = desired - vel;
-  auto steer = (desired - ReadableState().vel) / max_velocity * max_force;
-  steer.Limit(max_force);
+  auto steer = (desired - ReadableState().vel) / m_max_velocity * m_max_force;
+  steer.Limit(m_max_force);
 
   return steer;
 }
@@ -384,7 +384,7 @@ void Vehicle::CheckForHits(std::vector<Vehicle>& vehicles) {
   if (m_guns_allowed) {
     for (auto& vehicle : vehicles) {
       if (CheckEnemyClan(vehicle)) {
-        if (vehicle.weapon.CheckHit(ReadableState().pos, size)) {
+        if (vehicle.weapon.CheckHit(ReadableState().pos, m_size)) {
           health = 0.0;
         }
       }
@@ -494,12 +494,12 @@ void DrawVehicle(const Vehicle& vehicle, const IRenderer& renderer) {
     case VehicleType::BIRD:
     case VehicleType::TRIANGLE: {
       auto current_diretion = vehicle.last_heading;
-      auto p1 = vehicle.ReadableState().pos + current_diretion * vehicle.size;
-      auto p3 = vehicle.ReadableState().pos - current_diretion * vehicle.size / 2.0;
+      auto p1 = vehicle.ReadableState().pos + current_diretion * vehicle.m_size;
+      auto p3 = vehicle.ReadableState().pos - current_diretion * vehicle.m_size / 2.0;
       current_diretion.Rotate(M_PI * 3.0 / 4.0);
-      auto p2 = vehicle.ReadableState().pos + current_diretion * vehicle.size;
+      auto p2 = vehicle.ReadableState().pos + current_diretion * vehicle.m_size;
       current_diretion.Rotate(M_PI * 1.0 / 2.0);
-      auto p4 = vehicle.ReadableState().pos + current_diretion * vehicle.size;
+      auto p4 = vehicle.ReadableState().pos + current_diretion * vehicle.m_size;
 
       renderer.DrawLine(p1, p2, color);
       renderer.DrawLine(p2, p3, color);
@@ -515,7 +515,7 @@ void DrawVehicle(const Vehicle& vehicle, const IRenderer& renderer) {
     }
     case VehicleType::CIRCLE:
     case VehicleType::FLY: {
-      renderer.DrawCircle(vehicle.ReadableState().pos, vehicle.size, color);
+      renderer.DrawCircle(vehicle.ReadableState().pos, vehicle.m_size, color);
 
       // draw gun
       if (vehicle.weapon.GetGunShot()) {
@@ -597,7 +597,7 @@ std::optional<VehicleType> Vehicle::UpdateReproduction(const VehicleStorage& veh
 void Vehicle::UpdateWeapons(const VehicleStorage& vehicles_in_range, double delta_t) {
   if (m_guns_allowed) {
     if (GunSensor(vehicles_in_range)) {
-      weapon.FireGun(ReadableState().pos, last_heading, size);
+      weapon.FireGun(ReadableState().pos, last_heading, m_size);
     }
 
     weapon.Update(delta_t);

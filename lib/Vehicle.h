@@ -27,10 +27,12 @@ struct VehicleState {
 
 double Map(double value, double from_start, double from_end, double to_start, double to_end);
 
+class Vehicle;
+
+using VehicleStorage = std::vector<std::reference_wrapper<Vehicle>>;
+
 class Vehicle {
  private:
-  using VehicleStorage = std::vector<std::reference_wrapper<Vehicle>>;
-
   static int current_id;
 
   void InitVehicle();
@@ -68,9 +70,9 @@ class Vehicle {
 
   //  ---------------------config-------------------------
 
-  double max_velocity{500};  // pixel / second
-  double max_force{1000};    // velocity / second
-  double size{20};
+  double m_max_velocity{500};  // pixel / second
+  double m_max_force{1000};    // velocity / second
+  double m_size{20};
   double sensor_circle_radius{50.0};
   double sensor_angle{0.4 * M_PI * 2.0};
   double sensor_cone_radius{300.0};
@@ -88,7 +90,7 @@ class Vehicle {
   Rifle weapon{};
 
   // -----------------reproduction--------------
-  double reproduction_radius{2 * size};
+  double reproduction_radius{2 * m_size};
   double reproduction_chance{0.01};
   double reproduction_time{};
   double reproduction_waiting_time{5};

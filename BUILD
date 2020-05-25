@@ -35,18 +35,10 @@ cmake_external(
     ],
     out_include_dir = "include",
     shared_libraries = [
-        # "libsfml-audio.so",
         "libsfml-audio.so.2.5",
-        # "libsfml-audio.so.2.5.1",
-        # "libsfml-graphics.so",
         "libsfml-graphics.so.2.5",
-        # "libsfml-graphics.so.2.5.1",
-        # "libsfml-system.so",
         "libsfml-system.so.2.5",
-        # "libsfml-system.so.2.5.1",
-        # "libsfml-window.so",
         "libsfml-window.so.2.5",
-        # "libsfml-window.so.2.5.1",
     ],
     visibility = ["//visibility:public"],
 )
