@@ -1,4 +1,4 @@
-build -c opt --copt=-fdiagnostics-color=always --copt=-march=native --cxxopt='-std=c++17'
+build -c opt --copt=-fdiagnostics-color=always --copt=-march=native --cxxopt='-std=c++17' --sandbox_writable_path=/home/fberchtold/.ccache
 test -c opt
 run -c opt
 
