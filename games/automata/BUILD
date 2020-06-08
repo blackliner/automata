@@ -1,13 +1,14 @@
 load("//variables:variables.bzl", "BUILD_COPTS")
 load("@com_github_google_rules_install//installer:def.bzl", "installer")
+load("@rules_cc//cc:defs.bzl", "cc_binary")
 
 package(default_visibility = ["//visibility:public"])
 
 cc_binary(
     name = "automata",
     srcs = [
-        "Main.cpp",
-        "Main.h",
+        "main.cpp",
+        "main.h",
     ],
     copts = BUILD_COPTS + ["-Ilib"] + ["-Iquadtree"],
     deps = [

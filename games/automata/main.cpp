@@ -1,6 +1,6 @@
 #define _USE_MATH_DEFINES
 
-#include "Main.h"
+#include "main.h"
 
 #include <chrono>
 #include <cmath>
