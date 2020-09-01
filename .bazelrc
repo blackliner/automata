@@ -1,4 +1,4 @@
-build -c opt --copt=-fdiagnostics-color=always --copt=-march=native --cxxopt='-std=c++17' --sandbox_writable_path=/home/fberchtold/.ccache
+build -c opt --copt=-fdiagnostics-color=always --copt=-march=native --cxxopt='-std=c++17'
 test -c opt
 run -c opt
 
@@ -11,3 +11,6 @@ run -c opt
 #--cxxopt='-std=c++17'
 
 # bazel run --cxxopt='-march=native' --cxxopt='-O3' sfml
+
+# for ccache to work, add:
+#--sandbox_writable_path=/home/fberchtold/.ccache
