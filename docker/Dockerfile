@@ -40,4 +40,3 @@ WORKDIR /automata
 # COPY entry.sh /etc/
 
 # ENTRYPOINT /etc/entry.sh
-

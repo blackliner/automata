@@ -1,6 +1,6 @@
 pipeline {
     agent any
-    
+
     environment {
         build_id = UUID.randomUUID().toString()
     }
@@ -10,7 +10,7 @@ pipeline {
             steps {
                 sh './docker/build.py'
             }
-        }        
+        }
         stage('Cleanup') {
             steps {
                 //sh './docker/docker_run.py bazel clean'
