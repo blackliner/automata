@@ -1,4 +1,4 @@
-#now gprof
+#!/usr/bin/env bash
 
 bazel build --cxxopt='-std=c++17' --copt=-march=native --copt="-pg" --cxxopt="-pg" --linkopt="-pg" //games/automata
 
