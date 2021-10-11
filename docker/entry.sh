@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-cd /automata
+cd /automata || exit
 
 # bazel clean --expunge
 # bazel sync
