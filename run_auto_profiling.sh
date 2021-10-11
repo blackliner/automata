@@ -2,7 +2,7 @@
 
 bazel build --cxxopt='-std=c++17' --copt=-march=native --copt="-pg" --cxxopt="-pg" --linkopt="-pg" //games/automata
 
-cd bazel-bin/games/automata
+cd bazel-bin/games/automata || exit
 ./automata
 cd ../../..
 
