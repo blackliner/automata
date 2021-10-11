@@ -1,3 +1,5 @@
+#!/usr/bin/env bash
+
 sudo apt update && sudo apt install --no-install-recommends -y \
 libflac-dev \
 libopenal-dev \
