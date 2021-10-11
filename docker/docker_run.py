@@ -3,7 +3,6 @@
 import argparse
 import os
 import subprocess
-from pwd import getpwnam
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Build docker images.")
