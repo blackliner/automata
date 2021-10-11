@@ -1,9 +1,7 @@
 import googlemaps
 import numpy
-import sys
 import statistics
-from pprint import pprint
-from datetime import datetime, timezone
+from datetime import datetime
 
 
 def nice_time(seconds):
