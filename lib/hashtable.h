@@ -22,7 +22,7 @@ private:
     T_Key key{};
     T_Value value{};
   };
-  
+
 
   std::vector<std::uint64_t> hash_storage{};
   std::vector<T_Key> key_storage{};
