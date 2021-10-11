@@ -1,3 +1,5 @@
+#!/usr/bin/env bash
+
 set -euxo pipefail
 
 ./docker/build.py
